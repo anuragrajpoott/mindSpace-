@@ -10,7 +10,7 @@ const App = () => {
   const [loading, setLoading] = useState(false)
 
   return (
-    <div>
+    <div className=''>
 
       {
         loading ? (<div>Loading...</div>) : (<div>
@@ -19,14 +19,16 @@ const App = () => {
 
               <Routes>
 
-                <Route path='/feed' element={<Feed/>}/>
-                  
+                <Route path='/feed' element={<Feed />} />
+
               </Routes>
 
             </div>) : (<div>
 
               <Routes>
-                <Route path={"/"} element={<Home/>}/>
+
+                <Route path={"/"} element={<Home />} />
+
               </Routes>
             </div>)
           }
