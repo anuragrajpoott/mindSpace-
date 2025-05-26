@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 
-const CreatePostModal = ({ isOpen, onClose, onSubmit }) => {
+const CreatePostModal = ({ show, onClose, onSubmit }) => {
   const [content, setContent] = useState('');
   const [image, setImage] = useState(null);
 
-  if (!isOpen) return null; // Don't render if modal is closed
+  if (!show) return null; // Don't render if modal is closed
 
   const handleImageChange = (e) => {
     if (e.target.files[0]) {

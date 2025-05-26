@@ -18,7 +18,7 @@ const Nav = () => {
         {/* Logo */}
         <div className="flex items-center gap-2">
           <img src={logo} alt="logo" className="h-10" />
-          <span className="font-bold text-xl text-blue-800">Supportify+</span>
+          <span className="font-bold text-xl text-blue-800">Mind Space +</span>
         </div>
 
         {/* Navigation Links */}
