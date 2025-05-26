@@ -1,67 +1,74 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
-const user = new mongoose.Schema({
-    userName:{
-        type:String,
-        required:true
-    },
-    firstName:{
-        type:String,
-        
-    },
-    lastName:{
-        type:String,
-        
-    },
-    password:{
-        type:String,
-        required:true
-    },
-    email:{
-        type:String,
-    },
-    phoneNo:{
-        type:String,
-    },
-   
-    profileImage:{
-        type:String,
-    },
-    about:{
-        type:String,
-    },
-    gender:{
-        type:String,
-    },
-    dateOfBirth:{
-        type:String,
-    },
-    posts:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"posts"
-    },
-    likes:[{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"likes"
-    }],
-    comments:[{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"comments"
-    }],
-    friends:[{
-         type:mongoose.Schema.Types.ObjectId,
-        ref:"friends"
-    }],
-    otp:{
-        type:String,
-        createdAt: { type: Date, expires: 5*60*1000, default: Date.now }
-    },
-    token:{
-        type:String,
-        createdAt: { type: Date, expires: 24*60*1000, default: Date.now }
-    }
-    
+const userSchema = new mongoose.Schema({
+  userName: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  firstName: {
+    type: String,
+    default: "",
+  },
+  lastName: {
+    type: String,
+    default: "",
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    unique: true,
+    sparse: true, // allow multiple docs without email
+  },
+  phoneNo: {
+    type: String,
+    default: "",
+  },
+  profileImage: {
+    type: String,
+    default: "",
+  },
+  about: {
+    type: String,
+    default: "",
+  },
+  gender: {
+    type: String,
+    enum: ["male", "female", "other", ""],
+    default: "",
+  },
+  dateOfBirth: {
+    type: Date,
+  },
+  posts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Post", // Make sure your Post model is named "Post"
+  }],
+  likes: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Like",
+  }],
+  comments: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Comment",
+  }],
+  friends: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User", // referencing the same User model for friends
+  }],
+  otp: {
+    type: String,
+    expires: 300,  // 5 minutes in seconds
+  },
+  token: {
+    type: String,
+    expires: 86400, // 24 hours in seconds
+  }
+}, {
+  timestamps: true // adds createdAt and updatedAt fields automatically
+});
 
-})
-
-module.exports = mongoose.model("user",user)
+module.exports = mongoose.model("User", userSchema);

@@ -1,13 +1,16 @@
 import axios from "axios";
 
-export const axiosInstance = axios.create({});
+export const axiosInstance = axios.create({
+  // you can add baseURL or default headers here if needed
+  // baseURL: "http://localhost:4000/api/v1"
+});
 
-export const axiosConnector = (method, url, bodyData, headers, params) => {
+export const axiosConnector = (method, url, bodyData = null, headers = {}, params = {}) => {
   return axiosInstance({
-    method: `${method}`,
-    url: `${url}`,
-    data: bodyData ? bodyData : null,
-    headers: headers ? headers : null,
-    params: params ? params : null,
+    method,
+    url,
+    data: bodyData,
+    headers,
+    params,
   });
 };

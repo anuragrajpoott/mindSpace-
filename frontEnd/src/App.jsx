@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React from 'react'
 import Home from './pages/Home.jsx'
-import { Route, Routes } from 'react-router'
+import { Route, Routes, Navigate } from 'react-router-dom'
 import Feed from "./pages/Feed.jsx"
 import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
@@ -12,53 +12,42 @@ import Support from './pages/Support.jsx';
 import Profile from './pages/Profile.jsx';
 
 const App = () => {
+  const { user, loading } = useSelector((state) => state.slice);
 
-  const {user, loading} = useSelector((state)=>state.slice) 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className='bg-blue-100 p-10 min-h-screen text-2xl'>
 
-      {
-        loading ? (<div>Loading...</div>) : (<div>
-          {
-            user ? (<div>
+      {user ? (
+        <>
+          <Nav />
+          <Routes>
+            <Route path='/feed' element={<Feed />} />
+            <Route path='/messages' element={<Messages />} />
+            <Route path='/notifications' element={<Notifications />} />
+            <Route path='/support' element={<Support />} />
+            <Route path='/profile' element={<Profile />} />
 
-              <Nav/>
+            {/* Redirect unknown routes to /feed */}
+            <Route path="*" element={<Navigate to="/feed" replace />} />
+          </Routes>
+        </>
+      ) : (
+        <Routes>
+          <Route path='/' element={<Home />} />
+          <Route path='/log-in' element={<Login />} />
+          <Route path='/sign-up' element={<Signup />} />
 
-              <Routes>
-
-                <Route path='/feed' element={<Feed/>} />
-
-               <Route path="/messages" element={<Messages />} />
-
-            <Route path="/notifications" element={<Notifications />} />
-
-            <Route path="/support" element={<Support />} />
-
-            <Route path="/profile" element={<Profile />} />
-
-              </Routes>
-
-            </div>) : (<div>
-
-              
-
-              <Routes>
-
-                <Route path={"/"} element={<Home/>} />
-
-                <Route path={"/log-in"} element={<Login/>} />
-
-                <Route path={"/sign-up"} element={<Signup/>} />
-
-              </Routes>
-            </div>)
-          }
-        </div>)
-      }
+          {/* Redirect any unknown routes to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      )}
 
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;

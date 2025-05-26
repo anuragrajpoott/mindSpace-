@@ -1,183 +1,177 @@
-const user = require('../models/user')
+const User = require('../models/user');
+const mailSender = require("../utils/mailSender");
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const otpGenerator = require('otp-generator');
+require("dotenv").config();
 
-const mailSender = require("../utils/mailSender")
+exports.sendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
 
-const bcrypt = require('bcrypt')
-const crypto = require('crypto')
-const jwt = require('jsonwebtoken')
-const otpGenerator = require('otp-generator')
-
-require("dotenv").config()
-
-
-
-exports.sendOtp = async (req,res) =>{
-    try {
-        const {email} = req.body
-
-        if(!email){
-            res.status(404).json({
-                sucess:false,
-                message:"email not found"
-            })
-        }
-
-        const existingUser = user.findOne({email});
-
-        if(email==existingUser.email){
-            res.status(400).json({
-                success:false,
-                message:"user already registered"
-            })
-        }
-
-        const newOtp = otpGenerator.generate(6,{
-            upperCaseAlphabets:false,
-            lowerCaseAlphabets:false,
-            specialChars:false
-        })
-
-        user.create({
-            otp:newOtp
-        })
-
-
-        const newMail = mailSender(email,"otp for verification",`<h4>${newOtp}</h4>`)
-
-        res.status(200).json({
-            success:true,
-            message:"otp send successfully",
-            newMail
-        })
-    } catch (error) {
-        console.log(error)
-        res.status(400).json({
-            success:false,
-            message:"error while sending otp",
-            error:error
-        })
-        
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
     }
-}
 
-exports.signUp = async (req,res) => {
-    try {
-        const {userName,password,confirmPassword} = req.body
+    const existingUser = await User.findOne({ email });
 
-        if(!userName || !password || !confirmPassword){
-            return res.status(404).json({
-                success:false,
-                message:"fill all signup details"
-            })
-        }
-
-        if(password!=confirmPassword){
-            return res.status(400).json({
-                success:false,
-                message:"password doesn't matched"
-            })
-        }
-
-        const existingUser =  await user.findOne({userName});
-
-        if(existingUser){
-            return res.status(400).json({
-                sucess:false,
-                message:"user already registered"
-            })
-        }
-
-        let hashedPassword = await bcrypt.hash(password,10)
-
-        const newUser =  await user.create({userName,password:hashedPassword})
-
-        const token = jwt.sign({
-            userName:userName
-        },process.env.JWT_SECRET,{
-            expiresIn: '24h'
-        })
-
-        newUser.token = token
-
-        newUser.password = undefined
-
-        const options = {
-            expires: new Date(Date.now() + 3*24*60*60*1000),
-            httpOnly:true
-        }
-
-        return res.cookie("token",token,options).status(200).json({
-            success:true,
-            message:"user sign in success",
-            newUser
-        })
-    } catch (error) {
-        console.log(error)
-        return res.status(400).json({
-            success:false,
-            message:`error while creating account...`,
-            error
-        })
-        
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User already registered",
+      });
     }
-}
 
+    const newOtp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      lowerCaseAlphabets: false,
+      specialChars: false,
+    });
 
-exports.logIn = async(req,res)=>{
-    try {
-        const {userName,password} = req.body
+    // Here, usually you would store OTP with expiration in DB or cache
+    // For demonstration, let's assume you save in a collection or send directly
 
-        if(!userName || !password){
-            return res.status(404).json({
-                success:false,
-                message:"fill all login details"
-            })
-        }
+    // Send mail
+    await mailSender(email, "OTP for verification", `<h4>${newOtp}</h4>`);
 
-        const existingUser = await user.findOne({userName})
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent successfully",
+    });
 
-        if(!existingUser){
-            return res.status(400).json({
-                success:false,
-                message:"user is not registered"
-            })
-        }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error while sending OTP",
+      error: error.message,
+    });
+  }
+};
 
-        if(! await bcrypt.compare(password,existingUser.password)){
-            return res.status(400).json({
-                success:false,
-                message:"incorrect password"
-            })
-        }
+exports.signUp = async (req, res) => {
+  try {
+    const { userName, password, confirmPassword } = req.body;
 
-        const token = jwt.sign({
-            userName:existingUser.userName
-        },process.env.JWT_SECRET,{
-            expiresIn: '24h'
-        })
-
-        existingUser.token = token
-
-        existingUser.password = undefined
-
-        const options = {
-            expires: new Date(Date.now() + 3*24*60*60*1000),
-            httpOnly:true
-        }
-
-        return res.cookie("token",token,options).status(200).json({
-            success:true,
-            message:"user logged in success...",
-            existingUser
-        })
-    } catch (error) {
-        console.log(error)
-        return res.status(400).json({
-            success:false,
-            message:"error while logging in...",
-            error
-        })
-        
+    if (!userName || !password || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Please fill all signup details",
+      });
     }
-}
 
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Passwords do not match",
+      });
+    }
+
+    const existingUser = await User.findOne({ userName });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User already registered",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await User.create({ userName, password: hashedPassword });
+
+    const token = jwt.sign(
+      { userName: newUser.userName, id: newUser._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    newUser.password = undefined; // hide password
+    newUser.token = token;
+
+    const options = {
+      expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
+      httpOnly: true,
+    };
+
+    return res
+      .cookie("token", token, options)
+      .status(201)
+      .json({
+        success: true,
+        message: "User signed up successfully",
+        newUser,
+      });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error while creating account",
+      error: error.message,
+    });
+  }
+};
+
+exports.logIn = async (req, res) => {
+  try {
+    const { userName, password } = req.body;
+
+    if (!userName || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Please fill all login details",
+      });
+    }
+
+    const existingUser = await User.findOne({ userName });
+
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User is not registered",
+      });
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(password, existingUser.password);
+
+    if (!isPasswordCorrect) {
+      return res.status(400).json({
+        success: false,
+        message: "Incorrect password",
+      });
+    }
+
+    const token = jwt.sign(
+      { userName: existingUser.userName, id: existingUser._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    existingUser.password = undefined; // hide password
+    existingUser.token = token;
+
+    const options = {
+      expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
+      httpOnly: true,
+    };
+
+    return res
+      .cookie("token", token, options)
+      .status(200)
+      .json({
+        success: true,
+        message: "User logged in successfully",
+        existingUser,
+      });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error while logging in",
+      error: error.message,
+    });
+  }
+};
