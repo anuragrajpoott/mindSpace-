@@ -1,56 +1,64 @@
-import React, { useEffect, useState } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-import { FcLike, FcBusinessman } from 'react-icons/fc'
-import CreatePostModal from '../components/CreatePostModal'
-import { fetchPosts, createPost, likePost } from '../redux/postsSlice'
-import toast from 'react-hot-toast'
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { FcLike, FcBusinessman } from "react-icons/fc";
+import CreatePostModal from "../components/CreatePostModal";
+import { fetchPosts, createPost, likePost } from "../redux/postsSlice";
+import toast from "react-hot-toast";
 
 const Feed = () => {
-  const dispatch = useDispatch()
-  const { posts, loading, error } = useSelector(state => state.posts)
-  const user = useSelector(state => state.auth.user)
+  const dispatch = useDispatch();
+  const { posts, loading, error } = useSelector((state) => state.posts);
+  const user = useSelector((state) => state.auth.user);
 
-  const [modalOpen, setModalOpen] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false);
 
-  const openModal = () => setModalOpen(true)
-  const closeModal = () => setModalOpen(false)
+  const openModal = () => setModalOpen(true);
+  const closeModal = () => setModalOpen(false);
 
   useEffect(() => {
-    dispatch(fetchPosts())
-  }, [dispatch])
+    dispatch(fetchPosts());
+  }, [dispatch]);
 
-  const handleAddPost = async (content) => {
+  // Handle post creation - receives {content, image}
+  const handleAddPost = async ({ content, image }) => {
     try {
-      await dispatch(createPost(content)).unwrap()
-      toast.success("Post created successfully")
-      closeModal()
+      await dispatch(createPost({ content, image })).unwrap();
+      toast.success("Post created successfully");
+      closeModal();
     } catch (err) {
-      toast.error("Failed to create post: " + err.message)
+      toast.error("Failed to create post: " + err.message);
     }
-  }
+  };
 
+  // Handle liking a post
   const handleLikePost = async (postId) => {
     try {
-      await dispatch(likePost(postId)).unwrap()
+      await dispatch(likePost(postId)).unwrap();
     } catch (err) {
-      toast.error("Failed to like post: " + err.message)
+      toast.error("Failed to like post: " + err.message);
     }
-  }
+  };
 
   return (
     <div className="flex justify-around min-h-screen p-10 bg-blue-50">
-
       {/* Trending Sidebar */}
       <div className="h-fit w-[30%] bg-white p-6 rounded-lg shadow">
         <div className="mb-4">
           <p className="text-lg font-bold">📈 Trending Now</p>
-          <p className="text-sm text-gray-500">Curated by Mind Space + Supporters</p>
+          <p className="text-sm text-gray-500">
+            Curated by Mind Space + Supporters
+          </p>
         </div>
         <div className="flex flex-col gap-3 text-sm">
-          {/* You can load trending articles from API or keep static */}
-          <div className="bg-blue-100 p-2 rounded">How to manage anxiety in 5 steps</div>
-          <div className="bg-blue-100 p-2 rounded">Best breathing exercises for calmness</div>
-          <div className="bg-blue-100 p-2 rounded">Community journaling prompts</div>
+          <div className="bg-blue-100 p-2 rounded">
+            How to manage anxiety in 5 steps
+          </div>
+          <div className="bg-blue-100 p-2 rounded">
+            Best breathing exercises for calmness
+          </div>
+          <div className="bg-blue-100 p-2 rounded">
+            Community journaling prompts
+          </div>
         </div>
       </div>
 
@@ -82,9 +90,13 @@ const Feed = () => {
               <div className="h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center text-xl">
                 <FcBusinessman />
               </div>
-              <p className="font-semibold text-blue-900">@{post.user?.userName || "user"}</p>
+              <p className="font-semibold text-blue-900">
+                @{post.user?.userName || "user"}
+              </p>
             </div>
-            <p className="text-gray-800 mb-3">{post.description || post.content}</p>
+            <p className="text-gray-800 mb-3">
+              {post.description || post.content}
+            </p>
             <div
               className="text-sm text-gray-500 flex items-center gap-1 cursor-pointer select-none"
               onClick={() => handleLikePost(post._id)}
@@ -97,9 +109,13 @@ const Feed = () => {
       </div>
 
       {/* Create Post Modal */}
-      <CreatePostModal show={modalOpen} onClose={closeModal} onPost={handleAddPost} />
+      <CreatePostModal
+        show={modalOpen}
+        onClose={closeModal}
+        onSubmit={handleAddPost} // aligned with modal prop name
+      />
     </div>
-  )
-}
+  );
+};
 
-export default Feed
+export default Feed;

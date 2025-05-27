@@ -1,8 +1,32 @@
 import { configureStore } from '@reduxjs/toolkit'
-import reducer from "./slice"
 
-export default configureStore({
+import authReducer from './Slices/authSlice'
+import postsReducer from './Slices/postSlice'
+import commentsReducer from './Slices/commentSlice'
+import likesReducer from './Slices/likeSlice'
+import friendsReducer from './Slices/friendSlice'
+import messagesReducer from './Slices/messageSlice'
+import notificationsReducer from './Slices/notificationSlice'
+import groupsReducer from './Slices/groupsSlice';
+import postsReducer from './Slices/postsSlice';
+import moodReducer from './Slices/moodSlice';
+import resourcesReducer from './Slices/resourcesSlice';
+
+
+const store = configureStore({
   reducer: {
-    slice: reducer,
+    auth: authReducer,
+    posts: postsReducer,
+    comments: commentsReducer,
+    likes: likesReducer,
+    friends: friendsReducer,
+    messages: messagesReducer,
+    notifications: notificationsReducer,
+    groups: groupsReducer,
+    posts: postsReducer,
+    mood: moodReducer,
+    resources: resourcesReducer,
   },
 })
+
+export default store

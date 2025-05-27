@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { FcPortraitMode, FcViewDetails, FcEditImage } from 'react-icons/fc';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProfile, updateBio } from '../redux/actions/profileActions';
+import { fetchProfile, updateBio, uploadProfileImage } from '../redux/actions/profileActions'; // assume uploadProfileImage exists
 import toast from 'react-hot-toast';
 
 const Profile = () => {
@@ -9,6 +9,7 @@ const Profile = () => {
   const { profile, loading, error } = useSelector(state => state.profile);
   const [edit, setEdit] = useState(false);
   const [bio, setBio] = useState('');
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     dispatch(fetchProfile())
@@ -18,6 +19,10 @@ const Profile = () => {
   }, [dispatch]);
 
   const saveChanges = () => {
+    if (bio.trim() === '') {
+      toast.error('Bio cannot be empty');
+      return;
+    }
     dispatch(updateBio(bio))
       .unwrap()
       .then(() => {
@@ -25,6 +30,22 @@ const Profile = () => {
         setEdit(false);
       })
       .catch(() => toast.error('Failed to update bio'));
+  };
+
+  const onProfileImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImageChange = async (e) => {
+    if (!e.target.files?.length) return;
+    const file = e.target.files[0];
+    try {
+      await dispatch(uploadProfileImage(file)).unwrap();
+      toast.success('Profile image updated!');
+      dispatch(fetchProfile());
+    } catch {
+      toast.error('Failed to upload image');
+    }
   };
 
   if (loading) {
@@ -36,13 +57,12 @@ const Profile = () => {
   }
 
   if (!profile) {
-    return null; // or some fallback UI
+    return null;
   }
 
   return (
     <div className="min-h-screen bg-blue-50 p-6 flex justify-center">
       <div className="bg-white rounded-md shadow-md p-8 max-w-4xl w-full">
-        
         <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
           {/* Profile Image + Upload */}
           <div className="relative">
@@ -57,14 +77,21 @@ const Profile = () => {
                 <FcPortraitMode size={72} />
               </div>
             )}
-            {/* TODO: Add upload button with handler */}
             <button
               title="Change profile image"
-              className="absolute bottom-1 right-1 bg-white rounded-full p-1 shadow hover:bg-gray-100"
-              // onClick={} add upload logic here
+              onClick={onProfileImageClick}
+              className="absolute bottom-1 right-1 bg-white rounded-full p-1 shadow hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              type="button"
             >
               <FcEditImage size={24} />
             </button>
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              className="hidden"
+              onChange={handleImageChange}
+            />
           </div>
 
           {/* User Info */}
@@ -81,6 +108,7 @@ const Profile = () => {
               {edit ? (
                 <div className="flex flex-col gap-3">
                   <textarea
+                    aria-label="Edit your bio"
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     className="border rounded-md p-3 min-h-[80px]"
@@ -88,7 +116,10 @@ const Profile = () => {
                   <div className="flex gap-3">
                     <button
                       onClick={saveChanges}
-                      className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-md transition"
+                      disabled={bio.trim() === ''}
+                      className={`text-white px-5 py-2 rounded-md transition ${
+                        bio.trim() === '' ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+                      }`}
                     >
                       Save
                     </button>
@@ -109,6 +140,7 @@ const Profile = () => {
                   <button
                     onClick={() => setEdit(true)}
                     className="text-blue-600 underline hover:text-blue-700"
+                    type="button"
                   >
                     Edit
                   </button>
@@ -119,7 +151,7 @@ const Profile = () => {
         </div>
 
         {/* Posts Section */}
-        <div className="mt-10">
+        <section className="mt-10">
           <h3 className="text-2xl font-semibold flex items-center gap-2 mb-4 text-blue-800">
             <FcViewDetails /> Posts
           </h3>
@@ -138,7 +170,7 @@ const Profile = () => {
               ))}
             </ul>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );
