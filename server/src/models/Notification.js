@@ -1,28 +1,32 @@
+// models/Notification.js
+
 const mongoose = require("mongoose");
 
 const notificationSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "user",
-      required: true,
+      ref: "User", // Capitalized for consistency with your User model
+      required: [true, "User is required for notification"],
+      index: true,
     },
     type: {
       type: String,
-      enum: ["like", "comment", "friend_request", "message", "system"], // example types
-      required: true,
+      enum: ["like", "comment", "friend_request", "message", "system"],
+      required: [true, "Notification type is required"],
     },
     message: {
       type: String,
-      required: true,
+      required: [true, "Notification message is required"],
+      trim: true,
     },
     relatedId: {
-      type: mongoose.Schema.Types.ObjectId, // could be postId, commentId, friendRequestId, etc.
+      type: mongoose.Schema.Types.ObjectId,
       refPath: "relatedModel",
     },
     relatedModel: {
       type: String,
-      enum: ["posts", "comments", "friends", "messages"],
+      enum: ["Post", "Comment", "Friend", "Message"],
     },
     read: {
       type: Boolean,
