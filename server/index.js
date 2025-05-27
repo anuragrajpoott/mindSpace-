@@ -35,7 +35,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "*", // Replace * with actual frontend URL in production
+    origin: "http://localhost:5173", // Replace * with actual frontend URL in production
     credentials: true,
   })
 );

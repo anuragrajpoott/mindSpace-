@@ -3,9 +3,8 @@ import { FcPortraitMode, FcViewDetails, FcEditImage } from 'react-icons/fc';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   fetchProfile,
-  updateBio,
-  uploadProfileImage,
-} from '../redux/actions/profileActions';
+  updateProfile,
+} from '../services/operations/userOperations';
 import toast from 'react-hot-toast';
 
 const MAX_BIO_LENGTH = 300;
@@ -13,31 +12,33 @@ const MAX_BIO_LENGTH = 300;
 const Profile = () => {
   const dispatch = useDispatch();
   const { profile, loading, error, updatingBio, uploadingImage } = useSelector(
-    (state) => state.profile
+    (state) => state.auth
   );
   const [edit, setEdit] = useState(false);
   const [bio, setBio] = useState('');
   const fileInputRef = useRef(null);
 
-  useEffect(() => {
-    dispatch(fetchProfile())
-      .unwrap()
+  useEffect(  () => {
+     async function fetechData(){
+     await dispatch(fetchProfile())
+      // .unwrap()
       .then((data) => setBio(data.bio || ''))
       .catch(() => toast.error('Failed to load profile'));
-  }, [dispatch]);
+  }(fetechData)}, [dispatch]);
 
   const saveChanges = useCallback(() => {
     if (bio.trim() === '') {
       toast.error('Bio cannot be empty');
       return;
     }
-    dispatch(updateBio(bio))
-      .unwrap()
-      .then(() => {
-        toast.success('Bio updated!');
-        setEdit(false);
-      })
-      .catch(() => toast.error('Failed to update bio'));
+    // dispatch(updateBio(bio))
+    //   .unwrap()
+    //   .then(() => {
+    //     toast.success('Bio updated!');
+    //     setEdit(false);
+    //   })
+    //   .catch(() => toast.error('Failed to update bio'));
+    console.log(bio)
   }, [bio, dispatch]);
 
   const onProfileImageClick = useCallback(() => {
@@ -50,7 +51,7 @@ const Profile = () => {
       const file = e.target.files[0];
       try {
         // You can optimistically update the profile image here if uploadProfileImage returns new image URL
-        await dispatch(uploadProfileImage(file)).unwrap();
+        await dispatch(updateProfile(file)).unwrap();
         toast.success('Profile image updated!');
         dispatch(fetchProfile());
       } catch {

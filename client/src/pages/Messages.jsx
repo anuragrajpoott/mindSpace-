@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchChats, fetchMessages, sendMessage } from "../redux/actions/messagesActions";
+import {  getMessages, sendMessage } from "../services/operations/messageOperations";
 import toast from "react-hot-toast";
 
 const Messages = () => {
@@ -11,19 +11,19 @@ const Messages = () => {
   const messagesEndRef = useRef(null);
 
   // Fetch chats on mount
-  useEffect(() => {
-    dispatch(fetchChats())
-      .unwrap()
-      .then((res) => {
-        if (res.length > 0) setActiveChatId(res[0]._id);
-      })
-      .catch(() => toast.error("Failed to load chats"));
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(fetchChats())
+  //     .unwrap()
+  //     .then((res) => {
+  //       if (res.length > 0) setActiveChatId(res[0]._id);
+  //     })
+  //     .catch(() => toast.error("Failed to load chats"));
+  // }, [dispatch]);
 
   // Fetch messages when active chat changes
   useEffect(() => {
     if (activeChatId) {
-      dispatch(fetchMessages(activeChatId)).catch(() => toast.error("Failed to load messages"));
+      dispatch(getMessages(activeChatId)).catch(() => toast.error("Failed to load messages"));
     }
   }, [activeChatId, dispatch]);
 
@@ -45,7 +45,7 @@ const Messages = () => {
     }
   };
 
-  const activeChat = chats.find((chat) => chat._id === activeChatId);
+  const activeChat = chats?.find((chat) => chat._id === activeChatId);
 
   return (
     <div className="flex min-h-screen bg-blue-50">
@@ -58,9 +58,9 @@ const Messages = () => {
 
         {loading && !activeChatId && <p>Loading chats...</p>}
         {error && <p className="text-red-500">{error}</p>}
-        {!loading && chats.length === 0 && <p>No chats available.</p>}
+        {!loading && chats?.length === 0 && <p>No chats available.</p>}
 
-        {chats.map((chat) => (
+        {chats?.map((chat) => (
           <div
             key={chat._id}
             role="button"

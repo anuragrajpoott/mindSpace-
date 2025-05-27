@@ -1,11 +1,11 @@
 import { axiosConnector } from "../axios";
 import { endPoints } from "../apis";
 import toast from "react-hot-toast";
-import { setLoading, setUser } from "../../redux/slice";
+import { setLoading, setUser } from "../../redux/Slices/authSlice";
 
 const { UPDATE_PROFILE_API, GET_USER_API, SEARCH_USERS_API } = endPoints;
 
-export const getUser = (userId) => async (dispatch) => {
+export const fetchProfile = (userId) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
     const res = await axiosConnector("GET", `${GET_USER_API}/${userId}`);

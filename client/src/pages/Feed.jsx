@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { FcLike, FcBusinessman } from "react-icons/fc";
 import CreatePostModal from "../components/CreatePostModal";
-import { fetchPosts, createPost, likePost } from "../redux/postsSlice";
+import { setPosts, addPost, likePost } from "../redux/Slices/postSlice";
 import toast from "react-hot-toast";
 
 const Feed = () => {
@@ -21,14 +21,14 @@ const Feed = () => {
   const closeModal = () => setModalOpen(false);
 
   useEffect(() => {
-    dispatch(fetchPosts());
+    dispatch(setPosts());
   }, [dispatch]);
 
   // Handle post creation - receives {content, image}
   const handleAddPost = async ({ content, image }) => {
     try {
       setIsSubmitting(true);
-      await dispatch(createPost({ content, image })).unwrap();
+      await dispatch(addPost({ content, image })).unwrap();
       toast.success("Post created successfully");
       closeModal();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -90,9 +90,9 @@ const Feed = () => {
         {error && <p className="text-red-600">Error: {error}</p>}
 
         {/* Posts List */}
-        {posts.length === 0 && !loading && <p>No posts found.</p>}
+        {posts?.length === 0 && !loading && <p>No posts found.</p>}
 
-        {posts.map((post) => {
+        {posts?.map((post) => {
           const isLikedByUser = post.likes?.includes(user?._id);
           return (
             <article

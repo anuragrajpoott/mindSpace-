@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
-import { logIn } from "../services/operations/authOperations";
+import { login } from "../services/operations/authOperations";
 import logo from "../assets/images/logo.png";
 import { FcCloseUpMode } from "react-icons/fc";
 
@@ -26,7 +26,7 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(logIn(formData, navigate));
+    dispatch(login(formData, navigate));
     setFormData({ userName: "", password: "" });
   };
 

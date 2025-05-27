@@ -3,7 +3,7 @@ const BASE_URL = "http://localhost:4000/api/v1";
 export const endPoints = {
   // Auth
   SIGNUP: `${BASE_URL}/auth/signup`,
-  LOGIN: `${BASE_URL}/auth/login`,
+  LOGIN: `/auth/login`,
 
   // User Profile
   GET_USER_PROFILE: (userId) => `${BASE_URL}/users/${userId}`,

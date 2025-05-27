@@ -1,12 +1,12 @@
 import { axiosConnector } from "../axios";
 import { endPoints } from "../apis";
 import toast from "react-hot-toast";
-import { setLoading, setNotifications, markNotificationRead } from "../../redux/slice";
+import { setLoading, setNotifications, markNotificationRead } from "../../redux/Slices/notificationSlice";
 
 export const getNotifications = () => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("GET", endPoints.GET_NOTIFICATIONS_API);
+    const res = await axiosConnector("GET", endPoints.GET_NOTIFICATIONS);
     if (!res.data.success) throw new Error(res.data.message);
     dispatch(setNotifications(res.data.notifications));
   } catch (error) {

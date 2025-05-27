@@ -1,7 +1,7 @@
 import { axiosConnector } from "../axios";
 import { endPoints } from "../apis";
 import toast from "react-hot-toast";
-import { setLoading, setMessages, addMessage } from "../../redux/slice";
+import { setLoading, setMessages, addMessage } from "../../redux/Slices/messageSlice";
 
 export const sendMessage = (receiverId, message) => async (dispatch) => {
   dispatch(setLoading(true));

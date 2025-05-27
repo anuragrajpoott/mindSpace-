@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
-import { fetchGroups } from "../redux/actions/groupActions";
-import { fetchPosts } from "../redux/actions/postActions";
-import { fetchMoodLog, submitMoodLog } from "../redux/actions/moodActions";
-import { fetchSupportResources } from "../redux/actions/resourceActions";
+import { fetchGroups } from "../redux/Slices/groupSlice";
+import { fetchSupportPosts } from "../redux/Slices/supportPostSlice";
+import { fetchMoodLogs, logMood } from "../redux/Slices/moodSlice";
+import { fetchResources } from "../redux/Slices/resourceSlice";
 
 const moodOptions = [
   { label: "😊 Good", value: "good" },
@@ -40,9 +40,9 @@ const Support = () => {
 
   useEffect(() => {
     dispatch(fetchGroups());
-    dispatch(fetchPosts());
-    dispatch(fetchMoodLog());
-    dispatch(fetchSupportResources());
+    dispatch(fetchSupportPosts());
+    dispatch(fetchMoodLogs());
+    dispatch(fetchResources());
   }, [dispatch]);
 
   const handleMoodSubmit = useCallback(() => {

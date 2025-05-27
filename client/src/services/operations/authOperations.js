@@ -1,6 +1,6 @@
 import { axiosConnector } from "../../services/axios";
 import { endPoints } from "../../services/apis";
-import { setLoading, setUser } from "../slices/authSlice";
+import { setLoading, setUser } from "../../redux/Slices/authSlice";
 import toast from "react-hot-toast";
 
 const { SIGNUP_API, LOGIN_API, LOGOUT_API } = endPoints;

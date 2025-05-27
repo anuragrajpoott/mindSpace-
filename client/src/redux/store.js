@@ -7,10 +7,10 @@ import likesReducer from './Slices/likeSlice'
 import friendsReducer from './Slices/friendSlice'
 import messagesReducer from './Slices/messageSlice'
 import notificationsReducer from './Slices/notificationSlice'
-import groupsReducer from './Slices/groupsSlice';
+import groupsReducer from './Slices/groupSlice';
 import supportPostReducer from './Slices/supportPostSlice';
 import moodReducer from './Slices/moodSlice';
-import resourcesReducer from './Slices/resourcesSlice';
+import resourcesReducer from './Slices/resourceSlice';
 
 
 const store = configureStore({

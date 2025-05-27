@@ -38,8 +38,8 @@ const App = () => {
       ) : (
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+          <Route path="/log-in" element={<Login />} />
+          <Route path="/sign-up" element={<Signup />} />
 
           {/* Redirect unknown routes to home */}
           <Route path="*" element={<Navigate to="/" replace />} />

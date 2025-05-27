@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { FcLike, FcComments, FcPortraitMode, FcApproval } from "react-icons/fc";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchNotifications } from "../redux/actions/notificationsActions";
+import { getNotifications } from "../services/operations/notificationOperations";
 import toast from "react-hot-toast";
 
 const getIcon = (type) => {
@@ -24,8 +24,8 @@ const Notifications = () => {
   const { notifications, loading, error } = useSelector((state) => state.notifications);
 
   useEffect(() => {
-    dispatch(fetchNotifications())
-      .unwrap()
+    dispatch(getNotifications())
+      // .unwrap()
       .catch(() => toast.error("Failed to load notifications"));
   }, [dispatch]);
 

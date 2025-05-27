@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
-import { signUp } from "../services/operations/authOperations";
+import { register } from "../services/operations/authOperations";
 import logo from "../assets/images/logo.png";
 import { FcCloseUpMode } from "react-icons/fc";
 
@@ -33,7 +33,7 @@ const Signup = () => {
       return;
     }
 
-    dispatch(signUp(formData, navigate));
+    dispatch(register(formData, navigate));
     setFormData({ userName: "", password: "", confirmPassword: "" });
   };
 

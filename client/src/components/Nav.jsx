@@ -11,7 +11,7 @@ import {
   FcMindMap,
 } from "react-icons/fc";
 import { useSelector, useDispatch } from "react-redux";
-import { logoutUser } from "../Slices/authSlice"; // adjust path as needed
+import { logout } from "../redux/Slices/authSlice"; // adjust path as needed
 
 const Nav = () => {
   const { user } = useSelector((state) => state.auth);
@@ -20,7 +20,7 @@ const Nav = () => {
   const dispatch = useDispatch();
 
   const handleLogout = () => {
-    dispatch(logoutUser());
+    dispatch(logout());
     localStorage.removeItem("user");
     navigate("/login");
   };
