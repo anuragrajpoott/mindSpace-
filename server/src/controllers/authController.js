@@ -1,12 +1,15 @@
-const User = require("../models/User");
-const Post = require("../models/Post");
-const mailSender = require("../utils/mailSender");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const otpGenerator = require("otp-generator");
-require("dotenv").config();
+// src/controllers/authController.js
+import User from "../models/User.js";
+import Post from "../models/Post.js";
+import {mailSender} from "../utils/mailSender.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import otpGenerator from "otp-generator";
+import dotenv from "dotenv";
 
-// === Utility: Generate JWT Token ===
+dotenv.config();
+
+// Generate JWT token
 const generateToken = (user) => {
   return jwt.sign(
     { userName: user.userName, id: user._id },
@@ -15,8 +18,8 @@ const generateToken = (user) => {
   );
 };
 
-// === Controller: Send OTP ===
-exports.sendOtp = async (req, res) => {
+// Send OTP for email verification (consider saving OTP for verification later)
+export const sendOtp = async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) {
@@ -32,12 +35,15 @@ exports.sendOtp = async (req, res) => {
       upperCaseAlphabets: false,
       lowerCaseAlphabets: false,
       specialChars: false,
+      digits: true,
     });
 
-    // Optionally store OTP in DB for later verification (not implemented here)
+    // TODO: Save OTP to DB/cache with expiry for verification later
+
     await mailSender(email, "OTP Verification", `<h4>Your OTP is: ${otp}</h4>`);
 
-    return res.status(200).json({ success: true, message: "OTP sent successfully" });
+    // For dev/testing, consider returning OTP in response (remove in prod)
+    return res.status(200).json({ success: true, message: "OTP sent successfully" /*, otp */ });
   } catch (error) {
     console.error("Send OTP Error:", error);
     return res.status(500).json({
@@ -48,12 +54,12 @@ exports.sendOtp = async (req, res) => {
   }
 };
 
-// === Controller: Sign Up ===
-exports.signUp = async (req, res) => {
+// Sign up user (add email if applicable)
+export const signUp = async (req, res) => {
   try {
-    const { userName, password, confirmPassword } = req.body;
+    const { userName, password, confirmPassword /*, email */ } = req.body;
 
-    if (!userName || !password || !confirmPassword) {
+    if (!userName || !password || !confirmPassword /* || !email */) {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
@@ -66,11 +72,13 @@ exports.signUp = async (req, res) => {
       return res.status(400).json({ success: false, message: "Username already taken" });
     }
 
+    // Optionally check email uniqueness if you include it
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({ userName, password: hashedPassword });
+    const newUser = await User.create({ userName, password: hashedPassword /*, email */ });
 
     const token = generateToken(newUser);
-    newUser.password = undefined; // never return password
+    newUser.password = undefined; // remove password before returning
     newUser.token = token;
 
     res.cookie("token", token, {
@@ -93,8 +101,8 @@ exports.signUp = async (req, res) => {
   }
 };
 
-// === Controller: Log In ===
-exports.logIn = async (req, res) => {
+// Log in user
+export const logIn = async (req, res) => {
   try {
     const { userName, password } = req.body;
 
@@ -136,25 +144,27 @@ exports.logIn = async (req, res) => {
   }
 };
 
-
-
-
-// GET: Search users and posts by keyword query param ?q=
-exports.search = async (req, res) => {
+// Search users by userName and posts by title/description
+export const search = async (req, res) => {
   try {
     const query = req.query.q;
     if (!query) {
       return res.status(400).json({ success: false, message: "Query parameter 'q' is required" });
     }
 
-    const userRegex = new RegExp(query, "i"); // case-insensitive regex for matching
+    const userRegex = new RegExp(query, "i"); // case-insensitive regex
 
-    // Search users by userName (adjust as needed for other fields)
+    // Search users by userName
     const users = await User.find({ userName: userRegex }).select("userName profileImage");
 
-    // Search posts by content (adjust field names if needed)
-    const posts = await Post.find({ content: userRegex })
-      .populate("user", "userName profileImage")
+    // Search posts by title or description (adjust as per your schema)
+    const posts = await Post.find({
+      $or: [
+        { title: userRegex },
+        { description: userRegex },
+      ],
+    })
+      .populate("createdBy", "userName profileImage")
       .sort({ createdAt: -1 });
 
     res.status(200).json({

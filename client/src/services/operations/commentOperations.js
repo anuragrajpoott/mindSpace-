@@ -1,19 +1,20 @@
 import { axiosConnector } from "../axios";
 import { endPoints } from "../apis";
 import toast from "react-hot-toast";
-import { setLoading, setComments, addComment } from "../../redux/slice";
+import { setLoading, setComments, addComment as addCommentAction, removeComment } from "../../redux/slice";
 
-export const addComment = (postId, comment) => async (dispatch) => {
+export const addComment = (postId, commentText) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("POST", endPoints.COMMENT_POST_API, { postId, comment });
+    const res = await axiosConnector("POST", endPoints.COMMENT_POST_API, { postId, comment: commentText });
     if (!res.data.success) throw new Error(res.data.message);
     toast.success("Comment added");
-    dispatch(addComment(res.data.comment));
+    dispatch(addCommentAction(res.data.comment));
   } catch (error) {
-    toast.error(error.message || "Failed to add comment");
+    toast.error(error.response?.data?.message || error.message || "Failed to add comment");
+  } finally {
+    dispatch(setLoading(false));
   }
-  dispatch(setLoading(false));
 };
 
 export const getComments = (postId) => async (dispatch) => {
@@ -23,9 +24,10 @@ export const getComments = (postId) => async (dispatch) => {
     if (!res.data.success) throw new Error(res.data.message);
     dispatch(setComments(res.data.comments));
   } catch (error) {
-    toast.error(error.message || "Failed to fetch comments");
+    toast.error(error.response?.data?.message || error.message || "Failed to fetch comments");
+  } finally {
+    dispatch(setLoading(false));
   }
-  dispatch(setLoading(false));
 };
 
 export const deleteComment = (commentId) => async (dispatch) => {
@@ -34,9 +36,10 @@ export const deleteComment = (commentId) => async (dispatch) => {
     const res = await axiosConnector("DELETE", `${endPoints.DELETE_COMMENT_API}/${commentId}`);
     if (!res.data.success) throw new Error(res.data.message);
     toast.success("Comment deleted");
-    // Optionally refresh comments list or remove from store
+    dispatch(removeComment(commentId));
   } catch (error) {
-    toast.error(error.message || "Failed to delete comment");
+    toast.error(error.response?.data?.message || error.message || "Failed to delete comment");
+  } finally {
+    dispatch(setLoading(false));
   }
-  dispatch(setLoading(false));
 };

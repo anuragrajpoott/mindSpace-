@@ -1,10 +1,10 @@
-const Message = require("../models/Message");
-const User = require("../models/User");
-const cloudinary = require("cloudinary").v2;
-const { mailSender } = require("../utils/mailSender");
+import Message from "../models/Message.js";
+import User from "../models/User.js";
+import { v2 as cloudinary } from "cloudinary";
+import { mailSender } from "../utils/mailSender.js";
 
-// Send a new message
-exports.sendMessage = async (req, res) => {
+// Send a new message, optionally with media upload
+export const sendMessage = async (req, res) => {
   try {
     const senderId = req.user.id;
     const { receiverId, content } = req.body;
@@ -13,7 +13,6 @@ exports.sendMessage = async (req, res) => {
       return res.status(400).json({ success: false, message: "Receiver and content or media required" });
     }
 
-    // Upload media to Cloudinary if exists
     let mediaUrl = null;
     if (req.files?.media) {
       const file = req.files.media;
@@ -32,14 +31,13 @@ exports.sendMessage = async (req, res) => {
       media: mediaUrl,
     });
 
-    // Send notification email to receiver
     const receiver = await User.findById(receiverId);
     if (receiver?.email) {
       await mailSender(
         receiver.email,
         "New Message Received",
-        `<p>You have received a new message from a user on Supportify+.</p>
-         <p>Message preview: ${content ? content.substring(0, 100) : '[Media message]'}</p>`
+        `<p>You have received a new message on Supportify+.</p>
+         <p>Message preview: ${content ? content.substring(0, 100) : "[Media message]"}</p>`
       );
     }
 
@@ -50,8 +48,8 @@ exports.sendMessage = async (req, res) => {
   }
 };
 
-// Get all messages between two users
-exports.getMessagesBetweenUsers = async (req, res) => {
+// Get all messages between authenticated user and another user
+export const getMessagesBetweenUsers = async (req, res) => {
   try {
     const userId = req.user.id;
     const { otherUserId } = req.params;
@@ -61,7 +59,7 @@ exports.getMessagesBetweenUsers = async (req, res) => {
         { sender: userId, receiver: otherUserId },
         { sender: otherUserId, receiver: userId },
       ],
-    }).sort({ createdAt: 1 });
+    }).sort({ createdAt: 1 }); // oldest first
 
     res.status(200).json({ success: true, messages });
   } catch (error) {
@@ -70,12 +68,12 @@ exports.getMessagesBetweenUsers = async (req, res) => {
   }
 };
 
-// Mark a message as read
-exports.markAsRead = async (req, res) => {
+// Mark a specific message as read
+export const markAsRead = async (req, res) => {
   try {
     const { messageId } = req.params;
-    const message = await Message.findById(messageId);
 
+    const message = await Message.findById(messageId);
     if (!message) {
       return res.status(404).json({ success: false, message: "Message not found" });
     }
@@ -90,8 +88,8 @@ exports.markAsRead = async (req, res) => {
   }
 };
 
-// Delete a message
-exports.deleteMessage = async (req, res) => {
+// Delete a message if the user is sender or receiver
+export const deleteMessage = async (req, res) => {
   try {
     const { messageId } = req.params;
     const userId = req.user.id;

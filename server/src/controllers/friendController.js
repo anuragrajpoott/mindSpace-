@@ -1,12 +1,17 @@
-const Message = require("../models/Message");
-const User = require("../models/User");
+// src/controllers/friendController.js
+import User from "../models/User.js";
 
 // ====== FRIEND REQUESTS ======
 
-exports.sendFriendRequest = async (req, res) => {
+// Send friend request
+export const sendFriendRequest = async (req, res) => {
   try {
     const senderId = req.user.id;
     const { recipientId } = req.body;
+
+    if (senderId === recipientId) {
+      return res.status(400).json({ success: false, message: "Cannot send friend request to yourself" });
+    }
 
     const sender = await User.findById(senderId);
     const recipient = await User.findById(recipientId);
@@ -19,6 +24,10 @@ exports.sendFriendRequest = async (req, res) => {
       return res.status(400).json({ success: false, message: "Friend request already sent" });
     }
 
+    if (recipient.friends?.includes(senderId)) {
+      return res.status(400).json({ success: false, message: "User is already your friend" });
+    }
+
     recipient.friendRequests.push(senderId);
     await recipient.save();
 
@@ -29,7 +38,8 @@ exports.sendFriendRequest = async (req, res) => {
   }
 };
 
-exports.acceptFriendRequest = async (req, res) => {
+// Accept friend request
+export const acceptFriendRequest = async (req, res) => {
   try {
     const userId = req.user.id;
     const { requesterId } = req.body;
@@ -41,9 +51,14 @@ exports.acceptFriendRequest = async (req, res) => {
       return res.status(400).json({ success: false, message: "No friend request from this user" });
     }
 
+    if (user.friends.includes(requesterId)) {
+      return res.status(400).json({ success: false, message: "User is already your friend" });
+    }
+
     user.friends.push(requesterId);
     requester.friends.push(userId);
 
+    // Remove the friend request after accepting
     user.friendRequests = user.friendRequests.filter(id => id.toString() !== requesterId);
 
     await user.save();
@@ -56,7 +71,8 @@ exports.acceptFriendRequest = async (req, res) => {
   }
 };
 
-exports.removeFriend = async (req, res) => {
+// Remove friend
+export const removeFriend = async (req, res) => {
   try {
     const userId = req.user.id;
     const { friendId } = req.body;
@@ -80,47 +96,3 @@ exports.removeFriend = async (req, res) => {
     res.status(500).json({ success: false, message: "Error removing friend", error: error.message });
   }
 };
-
-// ====== MESSAGES ======
-
-// exports.sendMessage = async (req, res) => {
-//   try {
-//     const senderId = req.user.id;
-//     const { receiverId, content, media = null } = req.body;
-
-//     if (!receiverId || !content) {
-//       return res.status(400).json({ success: false, message: "Receiver and content are required" });
-//     }
-
-//     const newMessage = await Message.create({
-//       sender: senderId,
-//       receiver: receiverId,
-//       content,
-//       media,
-//     });
-
-//     res.status(201).json({ success: true, message: "Message sent", data: newMessage });
-//   } catch (error) {
-//     console.error("Send Message Error:", error);
-//     res.status(500).json({ success: false, message: "Failed to send message", error: error.message });
-//   }
-// };
-
-// exports.getMessagesBetweenUsers = async (req, res) => {
-//   try {
-//     const userId = req.user.id;
-//     const { otherUserId } = req.params;
-
-//     const messages = await Message.find({
-//       $or: [
-//         { sender: userId, receiver: otherUserId },
-//         { sender: otherUserId, receiver: userId },
-//       ],
-//     }).sort({ createdAt: 1 });
-
-//     res.status(200).json({ success: true, messages });
-//   } catch (error) {
-//     console.error("Get Messages Error:", error);
-//     res.status(500).json({ success: false, message: "Error retrieving messages", error: error.message });
-//   }
-// };

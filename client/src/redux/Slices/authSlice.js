@@ -1,40 +1,43 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice } from "@reduxjs/toolkit";
 
-const initialUser = localStorage.getItem("user")
+// Load user from localStorage if available
+const userFromStorage = localStorage.getItem("user")
   ? JSON.parse(localStorage.getItem("user"))
-  : null
+  : null;
+
+const initialState = {
+  user: userFromStorage,
+  loading: false,
+  error: null,
+};
 
 const authSlice = createSlice({
-  name: 'auth',
-  initialState: {
-    loading: false,
-    user: initialUser,
-    error: null,
-  },
+  name: "auth",
+  initialState,
   reducers: {
-    setLoading(state, action) {
-      state.loading = action.payload
+    setLoading: (state, action) => {
+      state.loading = action.payload;
     },
-    setUser(state, action) {
-      state.user = action.payload
+    setUser: (state, action) => {
+      state.user = action.payload;
       if (action.payload) {
-        localStorage.setItem("user", JSON.stringify(action.payload))
+        localStorage.setItem("user", JSON.stringify(action.payload));
       } else {
-        localStorage.removeItem("user")
+        localStorage.removeItem("user");
       }
     },
-    setError(state, action) {
-      state.error = action.payload
+    setError: (state, action) => {
+      state.error = action.payload;
     },
-    clearError(state) {
-      state.error = null
+    clearError: (state) => {
+      state.error = null;
     },
-    logout(state) {
-      state.user = null
-      localStorage.removeItem("user")
-    }
+    logout: (state) => {
+      state.user = null;
+      localStorage.removeItem("user");
+    },
   },
-})
+});
 
-export const { setLoading, setUser, setError, clearError, logout } = authSlice.actions
-export default authSlice.reducer
+export const { setLoading, setUser, setError, clearError, logout } = authSlice.actions;
+export default authSlice.reducer;

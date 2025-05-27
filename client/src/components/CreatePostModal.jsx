@@ -4,28 +4,55 @@ const CreatePostModal = ({ show, onClose, onSubmit }) => {
   const [content, setContent] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Reset modal state when it opens/closes
   useEffect(() => {
     if (!show) {
       setContent("");
       setImageFile(null);
       setImagePreview(null);
+      setSubmitting(false);
     }
   }, [show]);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape" && show) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [show, onClose]);
+
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > MAX_SIZE) {
+        alert("Image size should be less than 5MB.");
+        e.target.value = null;
+        return;
+      }
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (content.trim() === "") return;
-    // Pass content and file (not preview URL) to onSubmit
-    onSubmit({ content, image: imageFile });
+    setSubmitting(true);
+    await onSubmit({ content, image: imageFile });
+    setSubmitting(false);
     onClose();
   };
 
@@ -57,6 +84,7 @@ const CreatePostModal = ({ show, onClose, onSubmit }) => {
           placeholder="Share your thoughts or experience..."
           className="w-full border p-3 rounded-md h-32 resize-none focus:outline-blue-500"
           aria-label="Post content"
+          autoFocus
         />
 
         <div className="mt-4">
@@ -81,15 +109,15 @@ const CreatePostModal = ({ show, onClose, onSubmit }) => {
 
         <button
           onClick={handleSubmit}
-          disabled={content.trim() === ""}
+          disabled={content.trim() === "" || submitting}
           className={`mt-6 px-6 py-2 rounded-md text-white ${
-            content.trim() === ""
+            content.trim() === "" || submitting
               ? "bg-blue-300 cursor-not-allowed"
               : "bg-blue-600 hover:bg-blue-700"
           }`}
-          aria-disabled={content.trim() === ""}
+          aria-disabled={content.trim() === "" || submitting}
         >
-          Post
+          {submitting ? "Posting..." : "Post"}
         </button>
       </div>
     </div>

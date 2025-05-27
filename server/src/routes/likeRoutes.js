@@ -1,12 +1,13 @@
-const express = require("express");
+import express from "express";
+import {toggleLike,getLikesForPost} from "../controllers/likeController.js";
+import {authenticateUser} from "../middlewares/authMiddleware.js";
+
 const router = express.Router();
-const likeController = require("../controllers/likeController");
-const authenticateUser = require("../middlewares/authmiddleware");
 
 // Toggle like/unlike on a post (authenticated)
-router.post("/:postId/toggle", authenticateUser, likeController.toggleLike);
+router.post("/:postId/toggle", authenticateUser, toggleLike);
 
 // Optionally, get likes for a post (public)
-// router.get("/:postId", likeController.getLikesForPost);
+router.get("/:postId", getLikesForPost);
 
-module.exports = router;
+export default router;

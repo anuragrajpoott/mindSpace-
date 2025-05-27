@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit';
 
 const likesSlice = createSlice({
   name: 'likes',
@@ -9,25 +9,26 @@ const likesSlice = createSlice({
   },
   reducers: {
     setLoading(state, action) {
-      state.loading = action.payload
+      state.loading = action.payload;
     },
     setLikes(state, action) {
-      state.likes = action.payload
+      state.likes = action.payload;
     },
     addLike(state, action) {
-      state.likes.push(action.payload)
+      state.likes.push(action.payload);
     },
     removeLike(state, action) {
-      state.likes = state.likes.filter(like => like.id !== action.payload)
+      // Assuming likes have an `id` property; change to `_id` if needed
+      state.likes = state.likes.filter(like => like.id !== action.payload);
     },
     setError(state, action) {
-      state.error = action.payload
+      state.error = action.payload;
     },
     clearError(state) {
-      state.error = null
+      state.error = null;
     },
   },
-})
+});
 
-export const { setLoading, setLikes, addLike, removeLike, setError, clearError } = likesSlice.actions
-export default likesSlice.reducer
+export const { setLoading, setLikes, addLike, removeLike, setError, clearError } = likesSlice.actions;
+export default likesSlice.reducer;

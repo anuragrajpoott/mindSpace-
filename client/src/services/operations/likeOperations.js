@@ -9,11 +9,12 @@ export const likePost = (postId) => async (dispatch) => {
     const res = await axiosConnector("POST", endPoints.LIKE_POST_API, { postId });
     if (!res.data.success) throw new Error(res.data.message);
     toast.success("Post liked");
-    // Optionally dispatch an action to update likes in store
+    // Optionally update likes in redux here if you manage likes state
   } catch (error) {
-    toast.error(error.message || "Failed to like post");
+    toast.error(error.response?.data?.message || error.message || "Failed to like post");
+  } finally {
+    dispatch(setLoading(false));
   }
-  dispatch(setLoading(false));
 };
 
 export const unlikePost = (postId) => async (dispatch) => {
@@ -22,9 +23,10 @@ export const unlikePost = (postId) => async (dispatch) => {
     const res = await axiosConnector("POST", endPoints.UNLIKE_POST_API, { postId });
     if (!res.data.success) throw new Error(res.data.message);
     toast.success("Post unliked");
-    // Optionally dispatch an action to update likes in store
+    // Optionally update likes in redux here if you manage likes state
   } catch (error) {
-    toast.error(error.message || "Failed to unlike post");
+    toast.error(error.response?.data?.message || error.message || "Failed to unlike post");
+  } finally {
+    dispatch(setLoading(false));
   }
-  dispatch(setLoading(false));
 };

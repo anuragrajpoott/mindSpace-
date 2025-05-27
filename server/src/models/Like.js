@@ -1,6 +1,4 @@
-// models/Like.js
-
-const mongoose = require("mongoose");
+import mongoose from "mongoose"
 
 const likeSchema = new mongoose.Schema(
   {
@@ -13,7 +11,13 @@ const likeSchema = new mongoose.Schema(
     post: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Post",
-      required: [true, "Post reference is required"],
+      default: null,
+      index: true,
+    },
+    comment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comment",
+      default: null,
       index: true,
     },
   },
@@ -22,7 +26,17 @@ const likeSchema = new mongoose.Schema(
   }
 );
 
-// To prevent duplicate likes from the same user on a post
-likeSchema.index({ user: 1, post: 1 }, { unique: true });
+// Compound unique index to prevent duplicate likes by the same user on same post or comment
+likeSchema.index(
+  { user: 1, post: 1 },
+  { unique: true, partialFilterExpression: { post: { $exists: true, $ne: null } } }
+);
 
-module.exports = mongoose.model("Like", likeSchema);
+likeSchema.index(
+  { user: 1, comment: 1 },
+  { unique: true, partialFilterExpression: { comment: { $exists: true, $ne: null } } }
+);
+
+const Like = mongoose.model("Like", likeSchema);
+
+export default Like

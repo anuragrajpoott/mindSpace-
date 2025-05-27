@@ -10,11 +10,12 @@ export const getUser = (userId) => async (dispatch) => {
   try {
     const res = await axiosConnector("GET", `${GET_USER_API}/${userId}`);
     if (!res.data.success) throw new Error(res.data.message);
-    return res.data.user; // Return user data to caller
+    return res.data.user; // Return user data to the caller
   } catch (error) {
-    toast.error(error.message || "Failed to fetch user");
+    toast.error(error.response?.data?.message || error.message || "Failed to fetch user");
+  } finally {
+    dispatch(setLoading(false));
   }
-  dispatch(setLoading(false));
 };
 
 export const updateProfile = (formData) => async (dispatch) => {
@@ -26,9 +27,10 @@ export const updateProfile = (formData) => async (dispatch) => {
     dispatch(setUser(res.data.updatedUser));
     localStorage.setItem("user", JSON.stringify(res.data.updatedUser));
   } catch (error) {
-    toast.error(error.message || "Profile update failed");
+    toast.error(error.response?.data?.message || error.message || "Profile update failed");
+  } finally {
+    dispatch(setLoading(false));
   }
-  dispatch(setLoading(false));
 };
 
 export const searchUsers = (query) => async (dispatch) => {
@@ -36,9 +38,10 @@ export const searchUsers = (query) => async (dispatch) => {
   try {
     const res = await axiosConnector("GET", SEARCH_USERS_API, null, null, { q: query });
     if (!res.data.success) throw new Error(res.data.message);
-    return res.data.users;
+    return res.data.users; // Return users list to the caller
   } catch (error) {
-    toast.error(error.message || "User search failed");
+    toast.error(error.response?.data?.message || error.message || "User search failed");
+  } finally {
+    dispatch(setLoading(false));
   }
-  dispatch(setLoading(false));
 };

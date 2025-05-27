@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit';
 
 const messagesSlice = createSlice({
   name: 'messages',
@@ -9,22 +9,22 @@ const messagesSlice = createSlice({
   },
   reducers: {
     setLoading(state, action) {
-      state.loading = action.payload
+      state.loading = action.payload;
     },
     setMessages(state, action) {
-      state.messages = action.payload
+      state.messages = action.payload;
     },
     addMessage(state, action) {
-      state.messages.push(action.payload)
+      state.messages.push(action.payload);
     },
     setError(state, action) {
-      state.error = action.payload
+      state.error = action.payload;
     },
     clearError(state) {
-      state.error = null
+      state.error = null;
     },
   },
-})
+});
 
-export const { setLoading, setMessages, addMessage, setError, clearError } = messagesSlice.actions
-export default messagesSlice.reducer
+export const { setLoading, setMessages, addMessage, setError, clearError } = messagesSlice.actions;
+export default messagesSlice.reducer;

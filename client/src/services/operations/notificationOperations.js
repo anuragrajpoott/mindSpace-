@@ -10,9 +10,10 @@ export const getNotifications = () => async (dispatch) => {
     if (!res.data.success) throw new Error(res.data.message);
     dispatch(setNotifications(res.data.notifications));
   } catch (error) {
-    toast.error(error.message || "Failed to fetch notifications");
+    toast.error(error.response?.data?.message || error.message || "Failed to fetch notifications");
+  } finally {
+    dispatch(setLoading(false));
   }
-  dispatch(setLoading(false));
 };
 
 export const markAsRead = (notificationId) => async (dispatch) => {
@@ -23,7 +24,8 @@ export const markAsRead = (notificationId) => async (dispatch) => {
     toast.success("Notification marked as read");
     dispatch(markNotificationRead(notificationId));
   } catch (error) {
-    toast.error(error.message || "Failed to mark notification");
+    toast.error(error.response?.data?.message || error.message || "Failed to mark notification");
+  } finally {
+    dispatch(setLoading(false));
   }
-  dispatch(setLoading(false));
 };

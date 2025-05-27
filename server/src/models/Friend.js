@@ -1,6 +1,4 @@
-// models/Friend.js
-
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const friendSchema = new mongoose.Schema(
   {
@@ -33,4 +31,7 @@ friendSchema.index(
   { unique: true }
 );
 
-module.exports = mongoose.model("Friend", friendSchema);
+const Friend = mongoose.model("Friend", friendSchema);
+
+export default Friend
+

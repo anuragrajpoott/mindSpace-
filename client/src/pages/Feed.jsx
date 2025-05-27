@@ -11,8 +11,13 @@ const Feed = () => {
   const user = useSelector((state) => state.auth.user);
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const openModal = () => setModalOpen(true);
+  const openModal = () => {
+    if (!loading && !isSubmitting) {
+      setModalOpen(true);
+    }
+  };
   const closeModal = () => setModalOpen(false);
 
   useEffect(() => {
@@ -22,11 +27,15 @@ const Feed = () => {
   // Handle post creation - receives {content, image}
   const handleAddPost = async ({ content, image }) => {
     try {
+      setIsSubmitting(true);
       await dispatch(createPost({ content, image })).unwrap();
       toast.success("Post created successfully");
       closeModal();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      toast.error("Failed to create post: " + err.message);
+      toast.error("Failed to create post: " + (err.message || "Unknown error"));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -35,39 +44,38 @@ const Feed = () => {
     try {
       await dispatch(likePost(postId)).unwrap();
     } catch (err) {
-      toast.error("Failed to like post: " + err.message);
+      toast.error("Failed to like post: " + (err.message || "Unknown error"));
     }
   };
 
   return (
     <div className="flex justify-around min-h-screen p-10 bg-blue-50">
       {/* Trending Sidebar */}
-      <div className="h-fit w-[30%] bg-white p-6 rounded-lg shadow">
+      <aside className="h-fit w-[30%] bg-white p-6 rounded-lg shadow">
         <div className="mb-4">
           <p className="text-lg font-bold">📈 Trending Now</p>
-          <p className="text-sm text-gray-500">
-            Curated by Mind Space + Supporters
-          </p>
+          <p className="text-sm text-gray-500">Curated by Mind Space + Supporters</p>
         </div>
         <div className="flex flex-col gap-3 text-sm">
-          <div className="bg-blue-100 p-2 rounded">
-            How to manage anxiety in 5 steps
-          </div>
-          <div className="bg-blue-100 p-2 rounded">
-            Best breathing exercises for calmness
-          </div>
-          <div className="bg-blue-100 p-2 rounded">
-            Community journaling prompts
-          </div>
+          <div className="bg-blue-100 p-2 rounded">How to manage anxiety in 5 steps</div>
+          <div className="bg-blue-100 p-2 rounded">Best breathing exercises for calmness</div>
+          <div className="bg-blue-100 p-2 rounded">Community journaling prompts</div>
         </div>
-      </div>
+      </aside>
 
       {/* Main Feed */}
-      <div className="flex flex-col gap-6 w-[60%]">
+      <main className="flex flex-col gap-6 w-[60%]">
         {/* Post Input Box */}
         <div
-          className="bg-white rounded-lg p-6 shadow flex gap-4 items-center cursor-pointer"
-          onClick={openModal}
+          className={`bg-white rounded-lg p-6 shadow flex gap-4 items-center ${
+            loading || isSubmitting ? "pointer-events-none opacity-50" : "cursor-pointer"
+          }`}
+          onClick={loading || isSubmitting ? undefined : openModal}
+          aria-disabled={loading || isSubmitting}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && openModal()}
+          aria-label="Create a supportive thought"
         >
           <div className="h-12 w-12 bg-gray-300 rounded-full flex items-center justify-center text-2xl">
             <FcBusinessman />
@@ -84,35 +92,45 @@ const Feed = () => {
         {/* Posts List */}
         {posts.length === 0 && !loading && <p>No posts found.</p>}
 
-        {posts.map((post) => (
-          <div key={post._id} className="bg-white rounded-lg p-6 shadow">
-            <div className="flex items-center gap-4 mb-2">
-              <div className="h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center text-xl">
-                <FcBusinessman />
-              </div>
-              <p className="font-semibold text-blue-900">
-                @{post.user?.userName || "user"}
-              </p>
-            </div>
-            <p className="text-gray-800 mb-3">
-              {post.description || post.content}
-            </p>
-            <div
-              className="text-sm text-gray-500 flex items-center gap-1 cursor-pointer select-none"
-              onClick={() => handleLikePost(post._id)}
-              title="Like post"
+        {posts.map((post) => {
+          const isLikedByUser = post.likes?.includes(user?._id);
+          return (
+            <article
+              key={post._id}
+              className="bg-white rounded-lg p-6 shadow"
+              aria-label={`Post by ${post.user?.userName || "user"}`}
             >
-              <FcLike /> {post.likes?.length || 0} likes
-            </div>
-          </div>
-        ))}
-      </div>
+              <div className="flex items-center gap-4 mb-2">
+                <div className="h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center text-xl">
+                  <FcBusinessman />
+                </div>
+                <p className="font-semibold text-blue-900">
+                  @{post.user?.userName || "user"}
+                </p>
+              </div>
+              <p className="text-gray-800 mb-3">{post.description || post.content}</p>
+              <button
+                type="button"
+                className={`text-sm flex items-center gap-1 select-none focus:outline-none ${
+                  isLikedByUser ? "text-blue-600 font-semibold" : "text-gray-500"
+                }`}
+                onClick={() => handleLikePost(post._id)}
+                title="Like post"
+                aria-pressed={isLikedByUser}
+              >
+                <FcLike /> {post.likes?.length || 0} likes
+              </button>
+            </article>
+          );
+        })}
+      </main>
 
       {/* Create Post Modal */}
       <CreatePostModal
         show={modalOpen}
         onClose={closeModal}
-        onSubmit={handleAddPost} // aligned with modal prop name
+        onSubmit={handleAddPost}
+        isSubmitting={isSubmitting}
       />
     </div>
   );

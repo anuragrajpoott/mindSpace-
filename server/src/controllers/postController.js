@@ -1,19 +1,20 @@
-const Post = require("../models/Post");
-const User = require("../models/User");
-const cloudinary = require("cloudinary").v2;
-const { mailSender } = require("../utils/mailSender");
+import Post from "../models/Post.js";
+import User from "../models/User.js";
+import cloudinary from "cloudinary";
+import { mailSender } from "../utils/mailSender.js";
+
+const cloudinaryV2 = cloudinary.v2;
 
 // ========== CREATE A POST ==========
-exports.createPost = async (req, res) => {
+export const createPost = async (req, res) => {
   try {
     const { content } = req.body;
     const userId = req.user.id;
 
-    // Handle image upload if present (e.g. via multipart form-data)
-    let imageUrl;
+    let imageUrl = null;
     if (req.files?.image) {
       const file = req.files.image;
-      const uploadResult = await cloudinary.uploader.upload(file.tempFilePath, {
+      const uploadResult = await cloudinaryV2.uploader.upload(file.tempFilePath, {
         folder: "SupportifyPlus/Posts",
         resource_type: "image",
         quality: "auto",
@@ -33,9 +34,8 @@ exports.createPost = async (req, res) => {
 
     await User.findByIdAndUpdate(userId, { $push: { posts: newPost._id } });
 
-    // Send notification email to user
     const user = await User.findById(userId);
-    if (user.email) {
+    if (user?.email) {
       await mailSender(
         user.email,
         "New Post Created",
@@ -51,7 +51,7 @@ exports.createPost = async (req, res) => {
 };
 
 // ========== GET ALL POSTS ==========
-exports.getAllPosts = async (req, res) => {
+export const getAllPosts = async (req, res) => {
   try {
     const posts = await Post.find()
       .sort({ createdAt: -1 })
@@ -69,7 +69,7 @@ exports.getAllPosts = async (req, res) => {
 };
 
 // ========== GET POST BY ID ==========
-exports.getPostById = async (req, res) => {
+export const getPostById = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id)
       .populate("author", "userName avatar")
@@ -88,7 +88,7 @@ exports.getPostById = async (req, res) => {
 };
 
 // ========== UPDATE POST ==========
-exports.updatePost = async (req, res) => {
+export const updatePost = async (req, res) => {
   try {
     const { content } = req.body;
     const userId = req.user.id;
@@ -100,10 +100,9 @@ exports.updatePost = async (req, res) => {
       return res.status(403).json({ success: false, message: "Unauthorized to edit this post" });
     }
 
-    // Handle image upload if present
     if (req.files?.image) {
       const file = req.files.image;
-      const uploadResult = await cloudinary.uploader.upload(file.tempFilePath, {
+      const uploadResult = await cloudinaryV2.uploader.upload(file.tempFilePath, {
         folder: "SupportifyPlus/Posts",
         resource_type: "image",
         quality: "auto",
@@ -111,7 +110,7 @@ exports.updatePost = async (req, res) => {
       post.image = uploadResult.secure_url;
     }
 
-    post.content = content || post.content;
+    if (content !== undefined) post.content = content;
 
     await post.save();
 
@@ -123,7 +122,7 @@ exports.updatePost = async (req, res) => {
 };
 
 // ========== DELETE POST ==========
-exports.deletePost = async (req, res) => {
+export const deletePost = async (req, res) => {
   try {
     const userId = req.user.id;
     const postId = req.params.id;

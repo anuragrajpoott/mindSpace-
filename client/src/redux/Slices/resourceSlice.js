@@ -1,15 +1,18 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-// Thunk: Fetch support resources
-export const fetchResources = createAsyncThunk('resources/fetchResources', async (_, { rejectWithValue }) => {
-  try {
-    const res = await axios.get('/api/support/resources');
-    return res.data.resources;
-  } catch (err) {
-    return rejectWithValue(err.response?.data?.message || err.message);
+// Thunk to fetch support resources
+export const fetchResources = createAsyncThunk(
+  'resources/fetchResources',
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await axios.get('/api/support/resources');
+      return res.data.resources;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
   }
-});
+);
 
 const resourcesSlice = createSlice({
   name: 'resources',
@@ -18,7 +21,9 @@ const resourcesSlice = createSlice({
     loading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    // Add synchronous reducers here if needed in the future
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchResources.pending, (state) => {

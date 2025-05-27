@@ -1,18 +1,19 @@
-const express = require("express");
+import express from "express";
+import {getAllUsers,getUserProfile,deleteUser,updateUserProfile} from "../controllers/userController.js";
+import {authenticateUser} from "../middlewares/authMiddleware.js";
+
 const router = express.Router();
-const userController = require("../controllers/userController");
-const authenticateUser = require("../middlewares/authmiddleware");
 
 // Get user profile by ID (public)
-router.get("/:id", userController.getUserProfile);
+router.get("/:id", getUserProfile);
 
 // Update own profile (authenticated)
-router.put("/", authenticateUser, userController.updateUserProfile);
+router.put("/", authenticateUser, updateUserProfile);
 
 // Delete own account (authenticated)
-router.delete("/", authenticateUser, userController.deleteUser);
+router.delete("/", authenticateUser, deleteUser);
 
-// Get all users (optional: add admin middleware if needed)
-router.get("/", authenticateUser, userController.getAllUsers);
+// Get all users (authenticated, consider admin middleware if needed)
+router.get("/", authenticateUser, getAllUsers);
 
-module.exports = router;
+export default router;

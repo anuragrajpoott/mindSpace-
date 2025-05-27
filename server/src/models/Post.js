@@ -1,26 +1,31 @@
-// models/Post.js
+import mongoose from 'mongoose';
 
-const mongoose = require("mongoose");
 
 const postSchema = new mongoose.Schema(
   {
     title: {
       type: String,
       trim: true,
+      maxlength: 150,
+      default: "",
     },
     description: {
       type: String,
       required: [true, "Post description is required"],
       trim: true,
+      minlength: 5,
+      maxlength: 2000,
     },
     media: {
       type: String, // Cloudinary URL or local path
       default: "",
+      trim: true,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
     likes: [
       {
@@ -45,4 +50,6 @@ const postSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Post", postSchema);
+const Post = mongoose.model("Post", postSchema);
+
+export default Post

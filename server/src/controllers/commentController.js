@@ -1,8 +1,9 @@
-const Comment = require("../models/Comment");
-const Post = require("../models/Post");
+// src/controllers/commentController.js
+import Comment from "../models/Comment.js";
+import Post from "../models/Post.js";
 
 // === Add Comment ===
-exports.addComment = async (req, res) => {
+export const addComment = async (req, res) => {
   try {
     const { content } = req.body;
     const postId = req.params.postId;
@@ -27,15 +28,23 @@ exports.addComment = async (req, res) => {
   }
 };
 
-// === Delete Comment ===
-exports.deleteComment = async (req, res) => {
+// === Delete Comment (only comment owner can delete) ===
+export const deleteComment = async (req, res) => {
   try {
     const commentId = req.params.id;
+    const userId = req.user.id;
 
-    const comment = await Comment.findByIdAndDelete(commentId);
+    const comment = await Comment.findById(commentId);
     if (!comment) {
       return res.status(404).json({ success: false, message: "Comment not found" });
     }
+
+    // Authorization check
+    if (comment.user.toString() !== userId) {
+      return res.status(403).json({ success: false, message: "Unauthorized to delete this comment" });
+    }
+
+    await comment.remove();
 
     await Post.findByIdAndUpdate(comment.post, { $pull: { comments: comment._id } });
 
@@ -46,7 +55,8 @@ exports.deleteComment = async (req, res) => {
   }
 };
 
-exports.getCommentsByPost = async (req, res) => {
+// === Get Comments by Post ===
+export const getCommentsByPost = async (req, res) => {
   try {
     const postId = req.params.postId;
 
@@ -67,35 +77,3 @@ exports.getCommentsByPost = async (req, res) => {
     });
   }
 };
-
-// // === Toggle Like on Post ===
-// exports.toggleLike = async (req, res) => {
-//   try {
-//     const postId = req.params.postId;
-//     const userId = req.user.id;
-
-//     const post = await Post.findById(postId);
-//     if (!post) {
-//       return res.status(404).json({ success: false, message: "Post not found" });
-//     }
-
-//     const alreadyLiked = post.likes.includes(userId);
-
-//     if (alreadyLiked) {
-//       post.likes.pull(userId);
-//     } else {
-//       post.likes.push(userId);
-//     }
-
-//     await post.save();
-
-//     return res.status(200).json({
-//       success: true,
-//       message: alreadyLiked ? "Like removed" : "Post liked",
-//       likesCount: post.likes.length,
-//     });
-//   } catch (error) {
-//     console.error("Toggle Like Error:", error);
-//     return res.status(500).json({ success: false, message: "Error toggling like" });
-//   }
-// };

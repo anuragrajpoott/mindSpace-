@@ -11,9 +11,10 @@ export const sendMessage = (receiverId, message) => async (dispatch) => {
     toast.success("Message sent");
     dispatch(addMessage(res.data.message));
   } catch (error) {
-    toast.error(error.message || "Failed to send message");
+    toast.error(error.response?.data?.message || error.message || "Failed to send message");
+  } finally {
+    dispatch(setLoading(false));
   }
-  dispatch(setLoading(false));
 };
 
 export const getMessages = (conversationId) => async (dispatch) => {
@@ -23,7 +24,8 @@ export const getMessages = (conversationId) => async (dispatch) => {
     if (!res.data.success) throw new Error(res.data.message);
     dispatch(setMessages(res.data.messages));
   } catch (error) {
-    toast.error(error.message || "Failed to fetch messages");
+    toast.error(error.response?.data?.message || error.message || "Failed to fetch messages");
+  } finally {
+    dispatch(setLoading(false));
   }
-  dispatch(setLoading(false));
 };

@@ -1,8 +1,9 @@
+// src/axios.js
 import axios from "axios";
 
 export const axiosInstance = axios.create({
-  // you can add baseURL or default headers here if needed
-  // baseURL: "http://localhost:4000/api/v1"
+  baseURL: "http://localhost:5000/api/v1", // Change this to match your server
+  withCredentials: true, // Important for sending/receiving cookies
 });
 
 export const axiosConnector = (method, url, bodyData = null, headers = {}, params = {}) => {

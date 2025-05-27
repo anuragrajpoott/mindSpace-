@@ -1,6 +1,13 @@
-// models/User.js
+import mongoose from 'mongoose';
 
-const mongoose = require("mongoose");
+
+const otpSchema = new mongoose.Schema(
+  {
+    code: { type: String },
+    expiresAt: { type: Date },
+  },
+  { _id: false }
+);
 
 const userSchema = new mongoose.Schema(
   {
@@ -9,6 +16,7 @@ const userSchema = new mongoose.Schema(
       required: [true, "Username is required"],
       unique: true,
       trim: true,
+      index: true,
     },
     firstName: {
       type: String,
@@ -26,6 +34,13 @@ const userSchema = new mongoose.Schema(
       sparse: true,
       trim: true,
       lowercase: true,
+      validate: {
+        validator: function (v) {
+          // Simple email regex
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        },
+        message: (props) => `${props.value} is not a valid email!`,
+      },
     },
     phoneNo: {
       type: String,
@@ -47,14 +62,13 @@ const userSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      enum: ["male", "female", "other", ""],
-      default: "",
+      enum: ["male", "female", "other"],
+      default: null,
     },
     dateOfBirth: {
       type: Date,
+      default: null,
     },
-
-    // Relationships
     posts: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -79,12 +93,7 @@ const userSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
-
-    // For OTP-based verification and sessions
-    otp: {
-      code: { type: String },
-      expiresAt: { type: Date },
-    },
+    otp: otpSchema,
     token: {
       type: String,
     },
@@ -94,4 +103,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("User", userSchema);
+const User = mongoose.model("User", userSchema);
+
+export default User

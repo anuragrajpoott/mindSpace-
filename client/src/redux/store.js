@@ -8,7 +8,7 @@ import friendsReducer from './Slices/friendSlice'
 import messagesReducer from './Slices/messageSlice'
 import notificationsReducer from './Slices/notificationSlice'
 import groupsReducer from './Slices/groupsSlice';
-import postsReducer from './Slices/postsSlice';
+import supportPostReducer from './Slices/supportPostSlice';
 import moodReducer from './Slices/moodSlice';
 import resourcesReducer from './Slices/resourcesSlice';
 
@@ -23,7 +23,7 @@ const store = configureStore({
     messages: messagesReducer,
     notifications: notificationsReducer,
     groups: groupsReducer,
-    posts: postsReducer,
+    supportPost: supportPostReducer,
     mood: moodReducer,
     resources: resourcesReducer,
   },

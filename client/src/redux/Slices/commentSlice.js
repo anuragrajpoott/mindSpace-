@@ -13,12 +13,18 @@ const commentsSlice = createSlice({
     },
     setComments(state, action) {
       state.comments = action.payload
+      state.error = null // clear error on successful load
     },
     addComment(state, action) {
-      state.comments.push(action.payload)
+      state.comments = [...state.comments, action.payload]
+      state.error = null // clear error on successful add
+    },
+    removeComment(state, action) {
+      state.comments = state.comments.filter(comment => comment._id !== action.payload)
     },
     setError(state, action) {
       state.error = action.payload
+      state.loading = false
     },
     clearError(state) {
       state.error = null
@@ -26,5 +32,5 @@ const commentsSlice = createSlice({
   },
 })
 
-export const { setLoading, setComments, addComment, setError, clearError } = commentsSlice.actions
+export const { setLoading, setComments, addComment, removeComment, setError, clearError } = commentsSlice.actions
 export default commentsSlice.reducer

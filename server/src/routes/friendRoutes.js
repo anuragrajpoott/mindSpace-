@@ -1,20 +1,31 @@
-const express = require("express");
+import express from "express";
+import {sendFriendRequest,acceptFriendRequest,removeFriend} from "../controllers/friendController.js";
+import {authenticateUser} from "../middlewares/authMiddleware.js";
+
 const router = express.Router();
-const friendController = require("../controllers/friendController");
-const authenticateUser = require("../middlewares/authmiddleware");
 
-// Send friend request (authenticated)
-router.post("/request/:userId", authenticateUser, friendController.sendFriendRequest);
+// Send a friend request to a user (authenticated)
+router.post("/request/:userId", authenticateUser, sendFriendRequest);
 
-// Accept friend request (authenticated)
-router.put("/accept/:requestId", authenticateUser, friendController.acceptFriendRequest);
+// Accept a friend request (authenticated)
+router.post("/accept/:requestId", authenticateUser, acceptFriendRequest);
 
-router.put("/friend/:requestId", authenticateUser, friendController.removeFriend);
+// Decline a friend request (authenticated)
+// router.post("/decline/:requestId", authenticateUser, declineFriendRequest);
 
-// Decline friend request (authenticated)
-// router.put("/decline/:requestId", authenticateUser, friendController.declineFriendRequest);
+// Cancel a sent friend request (authenticated)
+// router.delete("/cancel/:requestId", authenticateUser, cancelFriendRequest);
 
-// // Get friend list (authenticated)
-// router.get("/", authenticateUser, friendController.getFriendsList);
+// Remove/unfriend a user (authenticated)
+router.delete("/remove/:friendId", authenticateUser, removeFriend);
 
-module.exports = router;
+// Get list of friends (authenticated)
+// router.get("/", authenticateUser, getFriendsList);
+
+// Get pending friend requests received (authenticated)
+// router.get("/requests/received", authenticateUser, getReceivedRequests);
+
+// Get pending friend requests sent (authenticated)
+// router.get("/requests/sent", authenticateUser, getSentRequests);
+
+export default router;

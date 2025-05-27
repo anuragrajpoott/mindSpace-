@@ -1,17 +1,28 @@
-import express from 'express';
-import { getGroups, toggleJoinGroup, getSupportPosts, createSupportPost, logMood, getSupportResources } from '../controllers/supportController.js';
-import { authMiddleware } from '../middlewares/authMiddleware.js';
+import express from "express";
+import {
+  getGroups,
+  toggleJoinGroup,
+  getSupportPosts,
+  createSupportPost,
+  logMood,
+  getSupportResources,
+} from "../controllers/supportController.js";
+import {authenticateUser} from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.get('/groups', authMiddleware, getGroups);
-router.post('/groups/:id/toggle-join', authMiddleware, toggleJoinGroup);
+// Groups routes
+router.get("/groups", authenticateUser, getGroups);
+router.post("/groups/:id/join", authenticateUser, toggleJoinGroup); // POST for join/leave toggle
 
-router.get('/support-posts', authMiddleware, getSupportPosts);
-router.post('/support-posts', authMiddleware, createSupportPost);
+// Support posts routes
+router.get("/support-posts", authenticateUser, getSupportPosts);
+router.post("/support-posts", authenticateUser, createSupportPost);
 
-router.post('/mood', authMiddleware, logMood);
+// Mood logging
+router.post("/mood", authenticateUser, logMood);
 
-router.get('/resources', authMiddleware, getSupportResources);
+// Support resources
+router.get("/resources", authenticateUser, getSupportResources);
 
 export default router;

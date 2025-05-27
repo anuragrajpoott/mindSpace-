@@ -13,15 +13,18 @@ const friendsSlice = createSlice({
     },
     setFriends(state, action) {
       state.friends = action.payload
+      state.error = null // Clear error on successful update
     },
     addFriend(state, action) {
-      state.friends.push(action.payload)
+      state.friends = [...state.friends, action.payload]
+      state.error = null
     },
     removeFriend(state, action) {
-      state.friends = state.friends.filter(friend => friend.id !== action.payload)
+      state.friends = state.friends.filter(friend => friend._id !== action.payload) // Use _id if your data uses that
     },
     setError(state, action) {
       state.error = action.payload
+      state.loading = false // Stop loading on error
     },
     clearError(state) {
       state.error = null

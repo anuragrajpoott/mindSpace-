@@ -1,10 +1,9 @@
-const User = require("../models/User");
-const cloudinary = require("../utils/fileUpload"); // Your cloudinary helper
-// const { mailSender } = require("../utils/mailSender"); // Your mail sender helper
+import User from "../models/User.js";
+import {uploadImageToCloudinary} from "../utils/fileUpload.js";
+// import { mailSender } from "../utils/mailSender.js"; // Uncomment if using email notifications
 
-
-// GET: Fetch user profile by ID
-exports.getUserProfile = async (req, res) => {
+// ========== GET USER PROFILE BY ID ==========
+export const getUserProfile = async (req, res) => {
   try {
     const userId = req.params.id;
 
@@ -12,7 +11,7 @@ exports.getUserProfile = async (req, res) => {
       .select("-password")
       .populate([
         { path: "posts", select: "_id content createdAt" },
-        { path: "likes", select: "_id" },           // adjust fields as per schema
+        { path: "likes", select: "_id" },
         { path: "comments", select: "_id text" },
         { path: "friends", select: "_id userName profileImage" },
       ]);
@@ -21,44 +20,30 @@ exports.getUserProfile = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    return res.status(200).json({ success: true, user });
+    res.status(200).json({ success: true, user });
   } catch (error) {
     console.error("Error fetching user profile:", error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
-// PUT: Update user profile
-
-// GET, DELETE, GET ALL USERS remain unchanged
-
-// PUT: Update user profile with Cloudinary image upload
-exports.updateUserProfile = async (req, res) => {
+// ========== UPDATE USER PROFILE ==========
+export const updateUserProfile = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Fields allowed to update
-    const updateFields = [
-      "firstName",
-      "lastName",
-      "email",
-      "phoneNo",
-      "about",
-      "gender",
-      "dateOfBirth",
-    ];
-
+    const allowedFields = ["firstName", "lastName", "email", "phoneNo", "about", "gender", "dateOfBirth"];
     const updates = {};
-    updateFields.forEach(field => {
+
+    for (const field of allowedFields) {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
       }
-    });
+    }
 
-    // Handle profile image upload to Cloudinary (if provided)
-    if (req.files && req.files.profileImage) {
+    if (req.files?.profileImage) {
       const file = req.files.profileImage;
-      const uploadedImage = await cloudinary.uploadImageToCloudinary(file, "profile_images", 300, 80);
+      const uploadedImage = await uploadImageToCloudinary(file, "profile_images", 300, 80);
       updates.profileImage = uploadedImage.secure_url;
     }
 
@@ -68,7 +53,7 @@ exports.updateUserProfile = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Optional: Send email notification on profile update
+    // Optional email notification
     /*
     await mailSender(
       user.email,
@@ -77,23 +62,19 @@ exports.updateUserProfile = async (req, res) => {
     );
     */
 
-    return res.status(200).json({
-      success: true,
-      message: "Profile updated successfully",
-      user,
-    });
+    res.status(200).json({ success: true, message: "Profile updated successfully", user });
   } catch (error) {
     console.error("Error updating profile:", error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
-// DELETE: Delete user account and optionally related data
-exports.deleteUser = async (req, res) => {
+// ========== DELETE USER ACCOUNT ==========
+export const deleteUser = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Optional: Delete related posts, comments, messages here
+    // Delete related data if needed (posts, comments, messages)
     // await Post.deleteMany({ author: userId });
     // await Comment.deleteMany({ user: userId });
     // await Message.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
@@ -104,27 +85,27 @@ exports.deleteUser = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    return res.status(200).json({ success: true, message: "User account deleted successfully" });
+    res.status(200).json({ success: true, message: "User account deleted successfully" });
   } catch (error) {
     console.error("Error deleting user:", error);
-    return res.status(500).json({ success: false, message: "Failed to delete user" });
+    res.status(500).json({ success: false, message: "Failed to delete user" });
   }
 };
 
-// GET: Get all users with pagination (optional)
-exports.getAllUsers = async (req, res) => {
+// ========== GET ALL USERS (WITH OPTIONAL PAGINATION) ==========
+export const getAllUsers = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 0;
-    const limit = parseInt(req.query.limit) || 20;
+    const page = Math.max(0, parseInt(req.query.page)) || 0;
+    const limit = Math.min(100, parseInt(req.query.limit)) || 20;
 
     const users = await User.find()
       .select("-password")
       .skip(page * limit)
       .limit(limit);
 
-    return res.status(200).json({ success: true, users });
+    res.status(200).json({ success: true, users });
   } catch (error) {
     console.error("Error fetching users:", error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

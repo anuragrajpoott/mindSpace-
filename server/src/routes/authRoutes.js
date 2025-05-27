@@ -1,13 +1,15 @@
-const express = require("express");
-const router = express.Router();
-const authController = require("../controllers/authController");
-const authenticateUser = require("../middlewares/authmiddleware");
+import express from "express";
+import {signUp,logIn,sendOtp,search} from "../controllers/authController.js";
+import {authenticateUser} from "../middlewares/authMiddleware.js";
 
+const router = express.Router();
 
 // Public routes
-router.post("/signup", authController.signUp);
-router.post("/login", authController.logIn);
-router.get("/send-otp", authController.sendOtp);
-router.get("/", authenticateUser, authController.search);
+router.post("/signup", signUp);
+router.post("/login", logIn);
+router.get("/send-otp", sendOtp);
 
-module.exports = router;
+// Protected route example: search users
+router.get("/search", authenticateUser, search);
+
+export default router;

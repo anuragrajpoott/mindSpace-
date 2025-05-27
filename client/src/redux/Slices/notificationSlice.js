@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit';
 
 const notificationsSlice = createSlice({
   name: 'notifications',
@@ -9,26 +9,28 @@ const notificationsSlice = createSlice({
   },
   reducers: {
     setLoading(state, action) {
-      state.loading = action.payload
+      state.loading = action.payload;
     },
     setNotifications(state, action) {
-      state.notifications = action.payload
+      state.notifications = action.payload;
     },
     addNotification(state, action) {
-      state.notifications.unshift(action.payload)
+      // Add new notification to the front of the array
+      state.notifications.unshift(action.payload);
     },
     markNotificationRead(state, action) {
-      const notif = state.notifications.find(n => n.id === action.payload)
-      if (notif) notif.read = true
+      // Mark notification as read by id
+      const notif = state.notifications.find(n => n.id === action.payload || n._id === action.payload);
+      if (notif) notif.read = true;
     },
     setError(state, action) {
-      state.error = action.payload
+      state.error = action.payload;
     },
     clearError(state) {
-      state.error = null
+      state.error = null;
     },
   },
-})
+});
 
 export const {
   setLoading,
@@ -37,5 +39,6 @@ export const {
   markNotificationRead,
   setError,
   clearError,
-} = notificationsSlice.actions
-export default notificationsSlice.reducer
+} = notificationsSlice.actions;
+
+export default notificationsSlice.reducer;

@@ -1,6 +1,5 @@
-// models/Comment.js
+import mongoose from 'mongoose';
 
-const mongoose = require("mongoose");
 
 const commentSchema = new mongoose.Schema(
   {
@@ -20,12 +19,14 @@ const commentSchema = new mongoose.Schema(
       type: String,
       required: [true, "Comment content is required"],
       trim: true,
+      minlength: 1,
+      maxlength: 1000,
     },
     parentComment: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Comment",
       default: null,
-      // For nested replies/comments if needed in future
+      index: true, // added index for nested comment queries
     },
   },
   {
@@ -33,4 +34,6 @@ const commentSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Comment", commentSchema);
+const Comment = mongoose.model('Comment', commentSchema);
+export default Comment;
+

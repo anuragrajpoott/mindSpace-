@@ -11,27 +11,24 @@ import {
   FcMindMap,
 } from "react-icons/fc";
 import { useSelector, useDispatch } from "react-redux";
-import { logoutUser, setUser } from "../redux/slice"; // adjust import path if needed
+import { logoutUser } from "../Slices/authSlice"; // adjust path as needed
 
 const Nav = () => {
-  const { user } = useSelector((state) => state.slice);
+  const { user } = useSelector((state) => state.auth);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Handle logout: clear user state and localStorage, then navigate to login page
   const handleLogout = () => {
     dispatch(logoutUser());
     localStorage.removeItem("user");
-    dispatch(setUser(null));
     navigate("/login");
   };
 
-  // Handle search submit (on Enter key)
   const handleSearch = () => {
     if (search.trim()) {
       navigate(`/search?query=${encodeURIComponent(search.trim())}`);
-      setSearch(""); // optionally clear input after search
+      setSearch("");
     }
   };
 
@@ -83,7 +80,7 @@ const Nav = () => {
           </div>
 
           {/* Profile Dropdown */}
-          <div className="relative group cursor-pointer">
+          <div className="relative group cursor-pointer" tabIndex={0} aria-haspopup="true" aria-expanded="false">
             {user?.profileImage ? (
               <img
                 src={user.profileImage}

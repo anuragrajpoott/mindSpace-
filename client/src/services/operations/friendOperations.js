@@ -9,11 +9,12 @@ export const sendRequest = (friendId) => async (dispatch) => {
     const res = await axiosConnector("POST", endPoints.ADD_FRIEND_API, { friendId });
     if (!res.data.success) throw new Error(res.data.message);
     toast.success("Friend request sent");
-    // Optionally update friend requests in store
+    // You can dispatch an action here to update friend requests if you manage them in store
   } catch (error) {
-    toast.error(error.message || "Failed to send friend request");
+    toast.error(error.response?.data?.message || error.message || "Failed to send friend request");
+  } finally {
+    dispatch(setLoading(false));
   }
-  dispatch(setLoading(false));
 };
 
 export const acceptRequest = (requestId) => async (dispatch) => {
@@ -22,11 +23,13 @@ export const acceptRequest = (requestId) => async (dispatch) => {
     const res = await axiosConnector("POST", endPoints.ACCEPT_FRIEND_REQUEST_API, { requestId });
     if (!res.data.success) throw new Error(res.data.message);
     toast.success("Friend request accepted");
+    // Refresh the friend list after acceptance
     dispatch(getFriends());
   } catch (error) {
-    toast.error(error.message || "Failed to accept friend request");
+    toast.error(error.response?.data?.message || error.message || "Failed to accept friend request");
+  } finally {
+    dispatch(setLoading(false));
   }
-  dispatch(setLoading(false));
 };
 
 export const removeFriend = (friendId) => async (dispatch) => {
@@ -35,11 +38,13 @@ export const removeFriend = (friendId) => async (dispatch) => {
     const res = await axiosConnector("DELETE", `${endPoints.REMOVE_FRIEND_API}/${friendId}`);
     if (!res.data.success) throw new Error(res.data.message);
     toast.success("Friend removed");
+    // Refresh the friend list after removal
     dispatch(getFriends());
   } catch (error) {
-    toast.error(error.message || "Failed to remove friend");
+    toast.error(error.response?.data?.message || error.message || "Failed to remove friend");
+  } finally {
+    dispatch(setLoading(false));
   }
-  dispatch(setLoading(false));
 };
 
 export const getFriends = () => async (dispatch) => {
@@ -49,7 +54,8 @@ export const getFriends = () => async (dispatch) => {
     if (!res.data.success) throw new Error(res.data.message);
     dispatch(setFriends(res.data.friends));
   } catch (error) {
-    toast.error(error.message || "Failed to fetch friends");
+    toast.error(error.response?.data?.message || error.message || "Failed to fetch friends");
+  } finally {
+    dispatch(setLoading(false));
   }
-  dispatch(setLoading(false));
 };

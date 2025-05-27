@@ -1,12 +1,11 @@
-// models/Message.js
+import mongoose from 'mongoose';
 
-const mongoose = require("mongoose");
 
 const messageSchema = new mongoose.Schema(
   {
     sender: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // capitalized to match your User model name
+      ref: "User",
       required: [true, "Sender is required"],
       index: true,
     },
@@ -20,10 +19,12 @@ const messageSchema = new mongoose.Schema(
       type: String,
       required: [true, "Message content is required"],
       trim: true,
+      maxlength: 2000,
     },
     media: {
       type: String, // URL or path if any media (image, audio, etc.)
-      default: null,
+      default: "",
+      trim: true,
     },
     read: {
       type: Boolean,
@@ -35,4 +36,6 @@ const messageSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Message", messageSchema);
+const Message = mongoose.model("Message", messageSchema);
+
+export default Message

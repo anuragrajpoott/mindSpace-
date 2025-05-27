@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit';
 
 const postsSlice = createSlice({
   name: 'posts',
@@ -9,22 +9,23 @@ const postsSlice = createSlice({
   },
   reducers: {
     setLoading(state, action) {
-      state.loading = action.payload
+      state.loading = action.payload;
     },
     setPosts(state, action) {
-      state.posts = action.payload
+      state.posts = action.payload;
     },
     addPost(state, action) {
-      state.posts.unshift(action.payload)
+      // Add new post to the beginning of posts array
+      state.posts.unshift(action.payload);
     },
     setError(state, action) {
-      state.error = action.payload
+      state.error = action.payload;
     },
     clearError(state) {
-      state.error = null
+      state.error = null;
     },
   },
-})
+});
 
-export const { setLoading, setPosts, addPost, setError, clearError } = postsSlice.actions
-export default postsSlice.reducer
+export const { setLoading, setPosts, addPost, setError, clearError } = postsSlice.actions;
+export default postsSlice.reducer;
