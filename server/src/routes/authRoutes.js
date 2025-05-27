@@ -5,8 +5,8 @@ import {authenticateUser} from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 // Public routes
-router.post("/signup", signUp);
-router.post("/login", logIn);
+router.post("/sign-up", signUp);
+router.post("/log-in", logIn);
 router.get("/send-otp", sendOtp);
 
 // Protected route example: search users

@@ -1,10 +1,9 @@
-import mongoose from 'mongoose';
 import Group from '../models/Group.js';
+import mongoose from 'mongoose';
 import Post from '../models/SupportPost.js';
 import MoodLog from '../models/MoodLog.js';
 import SupportResource from '../models/SupportResource.js';
 
-// ========== FETCH ALL GROUPS ==========
 export const getGroups = async (req, res) => {
   try {
     const groups = await Group.find();
@@ -56,57 +55,6 @@ export const getSupportPosts = async (req, res) => {
     res.status(200).json({ success: true, posts });
   } catch (error) {
     console.error("Fetch Support Posts Error:", error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// ========== CREATE A SUPPORT POST ==========
-export const createSupportPost = async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const { content } = req.body;
-
-    if (!content) {
-      return res.status(400).json({ success: false, message: 'Content is required' });
-    }
-
-    const post = new Post({ author: userId, content });
-    await post.save();
-
-    res.status(201).json({ success: true, post });
-  } catch (error) {
-    console.error("Create Support Post Error:", error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// ========== LOG MOOD ==========
-export const logMood = async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const { mood, note } = req.body;
-
-    if (!mood) {
-      return res.status(400).json({ success: false, message: 'Mood is required' });
-    }
-
-    const moodLog = new MoodLog({ user: userId, mood, note });
-    await moodLog.save();
-
-    res.status(201).json({ success: true, moodLog });
-  } catch (error) {
-    console.error("Log Mood Error:", error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// ========== FETCH SUPPORT RESOURCES ==========
-export const getSupportResources = async (req, res) => {
-  try {
-    const resources = await SupportResource.find();
-    res.status(200).json({ success: true, resources });
-  } catch (error) {
-    console.error("Fetch Support Resources Error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

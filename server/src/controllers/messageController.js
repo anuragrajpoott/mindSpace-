@@ -17,7 +17,7 @@ export const sendMessage = async (req, res) => {
     if (req.files?.media) {
       const file = req.files.media;
       const uploadResult = await cloudinary.uploader.upload(file.tempFilePath, {
-        folder: "SupportifyPlus/Messages",
+        folder: "mindSpace/Messages",
         resource_type: "auto",
         quality: "auto",
       });
@@ -36,7 +36,7 @@ export const sendMessage = async (req, res) => {
       await mailSender(
         receiver.email,
         "New Message Received",
-        `<p>You have received a new message on Supportify+.</p>
+        `<p>You have received a new message on Mind Space +.</p>
          <p>Message preview: ${content ? content.substring(0, 100) : "[Media message]"}</p>`
       );
     }

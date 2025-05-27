@@ -110,11 +110,10 @@ const CreatePostModal = ({ show, onClose, onSubmit }) => {
         <button
           onClick={handleSubmit}
           disabled={content.trim() === "" || submitting}
-          className={`mt-6 px-6 py-2 rounded-md text-white ${
-            content.trim() === "" || submitting
-              ? "bg-blue-300 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700"
-          }`}
+          className={`mt-6 px-6 py-2 rounded-md text-white ${content.trim() === "" || submitting
+            ? "bg-blue-300 cursor-not-allowed"
+            : "bg-blue-600 hover:bg-blue-700"
+            }`}
           aria-disabled={content.trim() === "" || submitting}
         >
           {submitting ? "Posting..." : "Post"}

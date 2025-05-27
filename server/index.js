@@ -26,7 +26,10 @@ import messageRoutes from "./src/routes/messageRoutes.js";
 import commentRoutes from "./src/routes/commentRoutes.js";
 import friendRoutes from "./src/routes/friendRoutes.js";
 import notificationRoutes from "./src/routes/notificationRoutes.js";
-import supportRoutes from "./src/routes/supportRoutes.js"; // if using Supportify+ support features
+import SupportResourceRoutes from "./src/routes/supportResourceRoutes.js";
+import supportPostRoutes from "./src/routes/supportPostRoutes.js";
+import moodLogRoutes from "./src/routes/moodLogRoutes.js";
+import groupRoutes from "./src/routes/groupRoutes.js"; // if using Supportify+ support features
 
 const app = express();
 
@@ -60,7 +63,10 @@ app.use("/api/v1/messages", messageRoutes);
 app.use("/api/v1/comments", commentRoutes);
 app.use("/api/v1/friends", friendRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
-app.use("/api/v1/support", supportRoutes); // if using supportController
+app.use("/api/v1/support-resource", SupportResourceRoutes); // if using supportController
+app.use("/api/v1/support-post", supportPostRoutes); 
+app.use("/api/v1/mood-log", moodLogRoutes); 
+app.use("/api/v1/group", groupRoutes); 
 
 // Base route
 app.get("/", (req, res) => {

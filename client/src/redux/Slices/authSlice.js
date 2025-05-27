@@ -1,14 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 // Load user from localStorage if available
-const userFromStorage = localStorage.getItem("user")
-  ? JSON.parse(localStorage.getItem("user"))
+const token = localStorage.getItem("token")
+  ? JSON.parse(localStorage.getItem("token"))
   : null;
 
 const initialState = {
-  user: userFromStorage,
+  token: token,
   loading: false,
-  error: null,
 };
 
 const authSlice = createSlice({
@@ -17,31 +16,17 @@ const authSlice = createSlice({
   reducers: {
     setLoading: (state, action) => {
       state.loading = action.payload;
-    },setLoading: (state, action) => {
-      state.loading = action.payload;
     },
-    
-
-    setUser: (state, action) => {
+    setToken: (state, action) => {
       state.user = action.payload;
       if (action.payload) {
-        localStorage.setItem("user", JSON.stringify(action.payload));
+        localStorage.setItem("token", JSON.stringify(action.payload));
       } else {
-        localStorage.removeItem("user");
+        localStorage.removeItem("token");
       }
-    },
-    setError: (state, action) => {
-      state.error = action.payload;
-    },
-    clearError: (state) => {
-      state.error = null;
-    },
-    logout: (state) => {
-      state.user = null;
-      localStorage.removeItem("user");
     },
   },
 });
 
-export const { setLoading, setUser, setError, clearError, logout } = authSlice.actions;
+export const { setLoading, setToken} = authSlice.actions;
 export default authSlice.reducer;

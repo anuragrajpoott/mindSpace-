@@ -10,8 +10,6 @@ router.post("/", authenticateUser, addComment);
 // Get comments for a post (public)
 router.get("/post/:postId", getCommentsByPost);
 
-// Update comment (authenticated)
-// router.put("/:id", authenticateUser, updateComment); // Uncomment if needed
 
 // Delete comment (authenticated)
 router.delete("/:id", authenticateUser, deleteComment);

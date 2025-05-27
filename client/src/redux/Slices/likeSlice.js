@@ -5,7 +5,6 @@ const likesSlice = createSlice({
   initialState: {
     loading: false,
     likes: [],
-    error: null,
   },
   reducers: {
     setLoading(state, action) {
@@ -14,21 +13,8 @@ const likesSlice = createSlice({
     setLikes(state, action) {
       state.likes = action.payload;
     },
-    addLike(state, action) {
-      state.likes.push(action.payload);
-    },
-    removeLike(state, action) {
-      // Assuming likes have an `id` property; change to `_id` if needed
-      state.likes = state.likes.filter(like => like.id !== action.payload);
-    },
-    setError(state, action) {
-      state.error = action.payload;
-    },
-    clearError(state) {
-      state.error = null;
-    },
   },
 });
 
-export const { setLoading, setLikes, addLike, removeLike, setError, clearError } = likesSlice.actions;
+export const { setLoading, setLikes} = likesSlice.actions;
 export default likesSlice.reducer;

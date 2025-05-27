@@ -9,8 +9,9 @@ import messagesReducer from './Slices/messageSlice'
 import notificationsReducer from './Slices/notificationSlice'
 import groupsReducer from './Slices/groupSlice';
 import supportPostReducer from './Slices/supportPostSlice';
-import moodReducer from './Slices/moodSlice';
-import resourcesReducer from './Slices/resourceSlice';
+import moodLogReducer from './Slices/moodLogSlice';
+import supportResourcesReducer from './Slices/supportResourceSlice';
+import userReducer from "./Slices/userSlice"
 
 
 const store = configureStore({
@@ -24,8 +25,10 @@ const store = configureStore({
     notifications: notificationsReducer,
     groups: groupsReducer,
     supportPost: supportPostReducer,
-    mood: moodReducer,
-    resources: resourcesReducer,
+    moodLog: moodLogReducer,
+    supportResource: supportResourcesReducer,
+    user : userReducer
+
   },
 })
 
