@@ -1,8 +1,13 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { FcPortraitMode, FcViewDetails, FcEditImage } from "react-icons/fc";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProfile, updateProfile } from "../services/operations/userOperations";
+import {
+  fetchProfile,
+  updateProfile,
+  updatePassword,
+} from "../services/operations/userOperations";
 import toast from "react-hot-toast";
+import UpdatePasswordModal from "../components/UpdatePasswordModal";
 
 const MAX_BIO_LENGTH = 300;
 
@@ -15,8 +20,12 @@ const Profile = () => {
   const [edit, setEdit] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [updatingBio, setUpdatingBio] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
   const fileInputRef = useRef(null);
 
+  // Load profile on mount and when user ID changes
   useEffect(() => {
     if (!user?._id) return;
 
@@ -33,6 +42,7 @@ const Profile = () => {
     loadProfile();
   }, [dispatch, user?._id]);
 
+  // Save bio changes
   const saveChanges = useCallback(async () => {
     if (bio.trim() === "") {
       toast.error("Bio cannot be empty");
@@ -40,7 +50,6 @@ const Profile = () => {
     }
     try {
       setUpdatingBio(true);
-      // Assuming updateProfile expects a formData or an object with bio property:
       await dispatch(updateProfile({ bio })).unwrap();
 
       toast.success("Bio updated!");
@@ -57,10 +66,12 @@ const Profile = () => {
     }
   }, [bio, dispatch, user?._id]);
 
+  // Open file picker for profile image upload
   const onProfileImageClick = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
 
+  // Handle profile image file selection and upload
   const handleImageChange = useCallback(
     async (e) => {
       if (!e.target.files?.length) return;
@@ -68,7 +79,6 @@ const Profile = () => {
       try {
         setUploadingImage(true);
 
-        // Create formData to upload image properly
         const formData = new FormData();
         formData.append("profileImage", file);
 
@@ -88,12 +98,28 @@ const Profile = () => {
     [dispatch, user?._id]
   );
 
+  // Handle password update from modal
+  const handleUpdatePassword = async ({ currentPassword, newPassword }) => {
+    setPasswordLoading(true);
+    try {
+      await dispatch(updatePassword({ currentPassword, newPassword })).unwrap();
+
+      toast.success("Password updated successfully!");
+      setShowPasswordModal(false);
+    } catch (error) {
+      toast.error(error.message || "Failed to update password");
+    }
+    setPasswordLoading(false);
+  };
+
   if (loading) {
     return <p className="text-center mt-10 text-gray-600">Loading profile...</p>;
   }
 
   if (!profile) {
-    return <p className="text-center mt-10 text-gray-600">No profile data available.</p>;
+    return (
+      <p className="text-center mt-10 text-gray-600">No profile data available.</p>
+    );
   }
 
   return (
@@ -198,6 +224,17 @@ const Profile = () => {
                 </div>
               )}
             </div>
+
+            {/* Update Password Button */}
+            <div className="mt-6">
+              <button
+                onClick={() => setShowPasswordModal(true)}
+                className="bg-amber-200 hover:bg-amber-300 px-5 py-2 rounded font-semibold"
+                type="button"
+              >
+                Update Password
+              </button>
+            </div>
           </div>
         </div>
 
@@ -222,6 +259,14 @@ const Profile = () => {
             </ul>
           )}
         </section>
+
+        {/* Update Password Modal */}
+        <UpdatePasswordModal
+          show={showPasswordModal}
+          onClose={() => setShowPasswordModal(false)}
+          onUpdatePassword={handleUpdatePassword}
+          loading={passwordLoading}
+        />
       </div>
     </div>
   );

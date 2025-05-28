@@ -1,29 +1,22 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate, Link } from "react-router-dom";
-import { login } from "../services/operations/authOperations";
+import { Link } from "react-router-dom";
+import { forgotPassword } from "../services/operations/authOperations";
 import logo from "../assets/images/logo.png";
 import { FcCloseUpMode } from "react-icons/fc";
 
-const Login = () => {
+const ForgotPassword = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    userName: "",
-    password: "",
-  });
-
-  const { userName, password } = formData;
+  const [email, setEmail] = useState("");
 
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setEmail(e.target.value);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(login(formData, navigate));
-    // Optionally keep form data to let user retry without clearing
+    dispatch(forgotPassword({ email }));
   };
 
   return (
@@ -34,57 +27,38 @@ const Login = () => {
         <span className="font-bold text-xl">Mind Space +</span>
       </Link>
 
-      {/* Login Form */}
+      {/* Forgot Password Form */}
       <form
         className="flex flex-col items-center justify-center gap-5"
         onSubmit={handleSubmit}
       >
-        <h2 className="text-2xl font-semibold">Welcome Back!</h2>
+        <h2 className="text-2xl font-semibold">Forgot Password?</h2>
 
         <label className="flex flex-col w-[300px] text-left">
-          <span className="mb-1">Username</span>
+          <span className="mb-1">Enter your registered email</span>
           <input
-            type="text"
-            name="userName"
-            value={userName}
+            type="email"
+            name="email"
+            value={email}
             onChange={handleChange}
             required
             className="border-2 p-2 rounded"
-            autoComplete="username"
+            autoComplete="email"
           />
-        </label>
-
-        <label className="flex flex-col w-[300px] text-left">
-          <span className="mb-1">Password</span>
-          <input
-            type="password"
-            name="password"
-            value={password}
-            onChange={handleChange}
-            required
-            className="border-2 p-2 rounded"
-            autoComplete="current-password"
-          />
-          <Link
-            to="/forgot-password"
-            className="self-end mt-1 italic text-sm text-blue-600 hover:underline"
-          >
-            Forgot Password?
-          </Link>
         </label>
 
         <button
           type="submit"
           className="bg-amber-200 hover:bg-amber-300 px-5 py-2 rounded font-semibold transition"
         >
-          Log In
+          Send Reset Link
         </button>
 
         <Link
-          to="/sign-up"
+          to="/log-in"
           className="italic text-sm text-gray-600 hover:underline"
         >
-          Don’t have an account?
+          Back to Log In
         </Link>
       </form>
 
@@ -98,4 +72,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default ForgotPassword;

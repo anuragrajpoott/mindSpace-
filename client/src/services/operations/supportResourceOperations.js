@@ -1,27 +1,112 @@
-// src/operations/supportResourceOperations.js
-
 import { axiosConnector } from "../../services/axios";
-import { endPoints } from "../../services/apis";
-import { setLoading, setSupportResouce } from "../../redux/Slices/supportResourceSlice";
+import {
+  setLoading,
+  setResources,
+  addResource,
+  updateResourceState,
+  deleteResourceState,
+  setError,
+} from "../../redux/Slices/supportResourceSlice";
 import toast from "react-hot-toast";
 
-const { GET_SUPPORT_RESOURCES } = endPoints;
+const baseUrl = "/resources";
 
-/**
- * Fetch support resources (e.g., hotlines, guides, etc.)
- */
+// Create a support resource (POST /)
+export const createResource = (resourceData) => async (dispatch) => {
+  dispatch(setLoading(true));
+  try {
+    const res = await axiosConnector("POST", baseUrl, resourceData);
+    dispatch(addResource(res.data.resource));
+    toast.success("Resource created");
+  } catch (error) {
+    toast.error("Creation failed");
+    dispatch(setError(error.message));
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
+
+// Get all resources (GET /)
 export const fetchResources = () => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("GET", GET_SUPPORT_RESOURCES);
-    const { success, resources } = res.data;
-
-    if (!success) throw new Error("Failed to fetch support resources");
-
-    dispatch(setSupportResouce(resources));
+    const res = await axiosConnector("GET", baseUrl);
+    dispatch(setResources(res.data.resources));
   } catch (error) {
-    console.error("Fetch Resources Error:", error);
-    toast.error(error?.response?.data?.message || error.message || "Unable to load resources");
+    toast.error("Failed to fetch resources");
+    dispatch(setError(error.message));
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
+
+// Get a resource by ID (GET /:id)
+export const fetchResourceById = (id) => async (dispatch) => {
+  dispatch(setLoading(true));
+  try {
+    const res = await axiosConnector("GET", `${baseUrl}/${id}`);
+    dispatch(addResource(res.data.resource)); // optional usage
+  } catch (error) {
+    toast.error("Failed to fetch resource");
+    dispatch(setError(error.message));
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
+
+// Get resources by category (GET /category/:category)
+export const fetchResourcesByCategory = (category) => async (dispatch) => {
+  dispatch(setLoading(true));
+  try {
+    const res = await axiosConnector("GET", `${baseUrl}/category/${category}`);
+    dispatch(setResources(res.data.resources));
+  } catch (error) {
+    toast.error("Failed to fetch by category");
+    dispatch(setError(error.message));
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
+
+// Search resources (GET /search/:keyword)
+export const searchResources = (keyword) => async (dispatch) => {
+  dispatch(setLoading(true));
+  try {
+    const res = await axiosConnector("GET", `${baseUrl}/search/${keyword}`);
+    dispatch(setResources(res.data.resources));
+  } catch (error) {
+    toast.error("Search failed");
+    dispatch(setError(error.message));
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
+
+// Update a resource (PUT /:id)
+export const updateResource = (id, updatedData) => async (dispatch) => {
+  dispatch(setLoading(true));
+  try {
+    const res = await axiosConnector("PUT", `${baseUrl}/${id}`, updatedData);
+    dispatch(updateResourceState(res.data.updatedResource));
+    toast.success("Resource updated");
+  } catch (error) {
+    toast.error("Update failed");
+    dispatch(setError(error.message));
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
+
+// Delete a resource (DELETE /:id)
+export const deleteResource = (id) => async (dispatch) => {
+  dispatch(setLoading(true));
+  try {
+    await axiosConnector("DELETE", `${baseUrl}/${id}`);
+    dispatch(deleteResourceState(id));
+    toast.success("Resource deleted");
+  } catch (error) {
+    toast.error("Delete failed");
+    dispatch(setError(error.message));
   } finally {
     dispatch(setLoading(false));
   }

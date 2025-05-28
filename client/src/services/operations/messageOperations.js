@@ -1,30 +1,69 @@
-import { axiosConnector } from "../axios";
-import { endPoints } from "../apis";
+import { axiosConnector } from "../../services/axios";
+import {
+  setLoading,
+  setMessages,
+  addMessage,
+  removeMessageState,
+  setError,
+} from "../../redux/Slices/messageSlice";
 import toast from "react-hot-toast";
-import { setLoading, setMessages } from "../../redux/Slices/messageSlice";
 
-export const sendMessage = (receiverId, message) => async (dispatch) => {
+const baseUrl = "/messages";
+
+// Send a message (POST /)
+export const sendMessage = (messageData) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("POST", endPoints.SEND_MESSAGE, { receiverId, message });
-    if (!res.data.success) throw new Error(res.data.message);
-    toast.success("Message sent");
-    dispatch(setMessages(res.data.message));
+    const res = await axiosConnector("POST", baseUrl, messageData);
+    dispatch(addMessage(res.data.message));
+    toast.success("Message sent!");
   } catch (error) {
-    toast.error(error.response?.data?.message || error.message || "Failed to send message");
+    toast.error(error.response?.data?.message || "Failed to send message");
+    dispatch(setError(error.response?.data?.message || error.message));
   } finally {
     dispatch(setLoading(false));
   }
 };
 
-export const getMessages = (conversationId) => async (dispatch) => {
+// Get messages with a user (GET /:otherUserId)
+export const fetchMessagesWithUser = (otherUserId) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("GET", endPoints.GET_MESSAGES_BETWEEN, null, null, { conversationId });
-    if (!res.data.success) throw new Error(res.data.message);
+    const res = await axiosConnector("GET", `${baseUrl}/${otherUserId}`);
     dispatch(setMessages(res.data.messages));
   } catch (error) {
-    toast.error(error.response?.data?.message || error.message || "Failed to fetch messages");
+    toast.error(error.response?.data?.message || "Failed to fetch messages");
+    dispatch(setError(error.response?.data?.message || error.message));
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
+
+// Delete a message (DELETE /:messageId)
+export const deleteMessage = (messageId) => async (dispatch) => {
+  dispatch(setLoading(true));
+  try {
+    await axiosConnector("DELETE", `${baseUrl}/${messageId}`);
+    dispatch(removeMessageState(messageId));
+    toast.success("Message deleted");
+  } catch (error) {
+    toast.error(error.response?.data?.message || "Failed to delete message");
+    dispatch(setError(error.response?.data?.message || error.message));
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
+
+// Get recent chats (GET /recent/chats)
+export const fetchRecentChats = () => async (dispatch) => {
+  dispatch(setLoading(true));
+  try {
+    const res = await axiosConnector("GET", `${baseUrl}/recent/chats`);
+    // Dispatch to set chats in the message slice or another slice
+    // For example: dispatch(setRecentChats(res.data.chats))
+  } catch (error) {
+    toast.error(error.response?.data?.message || "Failed to fetch recent chats");
+    dispatch(setError(error.response?.data?.message || error.message));
   } finally {
     dispatch(setLoading(false));
   }

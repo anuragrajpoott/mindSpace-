@@ -1,26 +1,28 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {  getMessages, sendMessage } from "../services/operations/messageOperations";
+import { getMessages, sendMessage } from "../services/operations/messageOperations";
+import { fetchChats } from "../services/operations/chatOperations"; // hypothetical
 import toast from "react-hot-toast";
 
 const Messages = () => {
   const dispatch = useDispatch();
-  const {  messages, loading, } = useSelector((state) => state.messages);
+
+  const { chats, loading: chatsLoading } = useSelector((state) => state.chats); // assume chats slice
+  const { messages, loading: messagesLoading } = useSelector((state) => state.messages);
+
   const [activeChatId, setActiveChatId] = useState(null);
   const [message, setMessage] = useState("");
   const messagesEndRef = useRef(null);
 
-  const chats = []
-
   // Fetch chats on mount
-  // useEffect(() => {
-  //   dispatch(fetchChats())
-  //     .unwrap()
-  //     .then((res) => {
-  //       if (res.length > 0) setActiveChatId(res[0]._id);
-  //     })
-  //     .catch(() => toast.error("Failed to load chats"));
-  // }, [dispatch]);
+  useEffect(() => {
+    dispatch(fetchChats())
+      .unwrap()
+      .then((res) => {
+        if (res.length > 0) setActiveChatId(res[0]._id);
+      })
+      .catch(() => toast.error("Failed to load chats"));
+  }, [dispatch]);
 
   // Fetch messages when active chat changes
   useEffect(() => {
@@ -40,7 +42,6 @@ const Messages = () => {
     try {
       await dispatch(sendMessage(activeChatId, message)).unwrap();
       setMessage("");
-      // Optionally fetch messages again or rely on real-time update
       dispatch(getMessages(activeChatId));
     } catch {
       toast.error("Failed to send message");
@@ -58,9 +59,8 @@ const Messages = () => {
       >
         <h2 className="text-xl font-bold mb-4 text-blue-800">Inbox</h2>
 
-        {loading && !activeChatId && <p>Loading chats...</p>}
-        {/* {error && <p className="text-red-500">{error}</p>} */}
-        {!loading && chats?.length === 0 && <p>No chats available.</p>}
+        {chatsLoading && <p>Loading chats...</p>}
+        {!chatsLoading && chats?.length === 0 && <p>No chats available.</p>}
 
         {chats?.map((chat) => (
           <div
@@ -92,9 +92,16 @@ const Messages = () => {
           </h2>
         </header>
 
-        <main className="flex-1 overflow-y-auto space-y-4 mb-4" aria-live="polite" aria-relevant="additions">
-          {loading && activeChatId && <p>Loading messages...</p>}
-          {!loading && messages.length === 0 && <p className="text-gray-500">No messages yet.</p>}
+        <main
+          className="flex-1 overflow-y-auto space-y-4 mb-4"
+          aria-live="polite"
+          aria-relevant="additions"
+        >
+          {messagesLoading && activeChatId && <p>Loading messages...</p>}
+          {!messagesLoading && activeChatId && messages.length === 0 && (
+            <p className="text-gray-500">No messages yet.</p>
+          )}
+          {!activeChatId && <p className="text-gray-500">Please select a chat to start messaging.</p>}
 
           {messages.map((msg, index) => (
             <div
@@ -104,8 +111,14 @@ const Messages = () => {
             >
               <div className="max-w-sm px-4 py-2 rounded-lg bg-white shadow-sm break-words">
                 <p className="text-sm">{msg.text}</p>
-                <p className="text-xs text-gray-400 text-right select-none" aria-hidden="true">
-                  {new Date(msg.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                <p
+                  className="text-xs text-gray-400 text-right select-none"
+                  aria-hidden="true"
+                >
+                  {new Date(msg.time).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </p>
               </div>
             </div>
@@ -127,7 +140,7 @@ const Messages = () => {
           <button
             onClick={handleSendMessage}
             className="bg-blue-500 text-white px-4 py-2 rounded-md disabled:opacity-50"
-            disabled={loading || !activeChatId || message.trim() === ""}
+            disabled={messagesLoading || !activeChatId || message.trim() === ""}
             aria-label="Send message"
             type="button"
           >

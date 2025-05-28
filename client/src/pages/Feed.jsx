@@ -3,8 +3,13 @@ import { useSelector, useDispatch } from "react-redux";
 import { FcLike, FcBusinessman } from "react-icons/fc";
 import CreatePostModal from "../components/CreatePostModal";
 import { setPosts } from "../redux/Slices/postSlice";
+import { toggleLike } from "../services/operations/likeOperations";
 import toast from "react-hot-toast";
-import {toggleLike} from "../services/operations/likeOperations"
+import { motion, AnimatePresence } from "framer-motion";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 const Feed = () => {
   const dispatch = useDispatch();
@@ -15,17 +20,15 @@ const Feed = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const openModal = () => {
-    if (!loading && !isSubmitting) {
-      setModalOpen(true);
-    }
+    if (!loading && !isSubmitting) setModalOpen(true);
   };
+
   const closeModal = () => setModalOpen(false);
 
   useEffect(() => {
     dispatch(setPosts());
   }, [dispatch]);
 
-  // Handle post creation - receives {content, image}
   const handleAddPost = async ({ content, image }) => {
     try {
       setIsSubmitting(true);
@@ -40,18 +43,21 @@ const Feed = () => {
     }
   };
 
-  // Handle liking a post
   const handleLikePost = async (postId) => {
     try {
-      await dispatch(toggleLike(postId))
+      await dispatch(toggleLike(postId));
     } catch (err) {
       toast.error("Failed to like post: " + (err.message || "Unknown error"));
     }
   };
 
+  const sortedPosts = [...posts].sort(
+    (a, b) => new Date(b.createdAt || b.time) - new Date(a.createdAt || a.time)
+  );
+
   return (
     <div className="flex justify-around min-h-screen p-10 bg-blue-50">
-      {/* Trending Sidebar */}
+      {/* Sidebar */}
       <aside className="h-fit w-[30%] bg-white p-6 rounded-lg shadow">
         <div className="mb-4">
           <p className="text-lg font-bold">📈 Trending Now</p>
@@ -66,12 +72,12 @@ const Feed = () => {
 
       {/* Main Feed */}
       <main className="flex flex-col gap-6 w-[60%]">
-        {/* Post Input Box */}
+        {/* Post Input */}
         <div
           className={`bg-white rounded-lg p-6 shadow flex gap-4 items-center ${
             loading || isSubmitting ? "pointer-events-none opacity-50" : "cursor-pointer"
           }`}
-          onClick={loading || isSubmitting ? undefined : openModal}
+          onClick={openModal}
           aria-disabled={loading || isSubmitting}
           role="button"
           tabIndex={0}
@@ -86,47 +92,66 @@ const Feed = () => {
           </div>
         </div>
 
-        {/* Loading and error */}
+        {/* Loading & Empty */}
         {loading && <p>Loading posts...</p>}
-        {/* {error && <p className="text-red-600">Error: {error}</p>} */}
+        {!loading && sortedPosts.length === 0 && <p>No posts found.</p>}
 
-        {/* Posts List */}
-        {posts?.length === 0 && !loading && <p>No posts found.</p>}
-
-        {posts?.map((post) => {
-          const isLikedByUser = post.likes?.includes(user?._id);
-          return (
-            <article
-              key={post._id}
-              className="bg-white rounded-lg p-6 shadow"
-              aria-label={`Post by ${post.user?.userName || "user"}`}
-            >
-              <div className="flex items-center gap-4 mb-2">
-                <div className="h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center text-xl">
-                  <FcBusinessman />
-                </div>
-                <p className="font-semibold text-blue-900">
-                  @{post.user?.userName || "user"}
-                </p>
-              </div>
-              <p className="text-gray-800 mb-3">{post.description || post.content}</p>
-              <button
-                type="button"
-                className={`text-sm flex items-center gap-1 select-none focus:outline-none ${
-                  isLikedByUser ? "text-blue-600 font-semibold" : "text-gray-500"
-                }`}
-                onClick={() => handleLikePost(post._id)}
-                title="Like post"
-                aria-pressed={isLikedByUser}
+        {/* Post List */}
+        <AnimatePresence>
+          {sortedPosts.map((post) => {
+            const isLikedByUser = post.likes?.includes(user?._id);
+            return (
+              <motion.article
+                key={post._id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="bg-white rounded-lg p-6 shadow"
+                aria-label={`Post by ${post.user?.userName || "user"}`}
               >
-                <FcLike /> {post.likes?.length || 0} likes
-              </button>
-            </article>
-          );
-        })}
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center text-xl">
+                    <FcBusinessman />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-blue-900">
+                      @{post.user?.userName || "user"}
+                    </p>
+                    <time className="text-sm text-gray-400" dateTime={post.createdAt}>
+                      {dayjs(post.createdAt).fromNow()}
+                    </time>
+                  </div>
+                </div>
+
+                <p className="text-gray-800 mb-3">{post.description || post.content}</p>
+
+                {post.image && (
+                  <img
+                    src={post.image}
+                    alt="Post visual"
+                    className="rounded-md mb-3 max-h-64 object-cover"
+                  />
+                )}
+
+                <button
+                  type="button"
+                  className={`text-sm flex items-center gap-1 select-none focus:outline-none ${
+                    isLikedByUser ? "text-blue-600 font-semibold" : "text-gray-500"
+                  }`}
+                  onClick={() => handleLikePost(post._id)}
+                  title="Like post"
+                  aria-pressed={isLikedByUser}
+                >
+                  <FcLike /> {post.likes?.length || 0} likes
+                </button>
+              </motion.article>
+            );
+          })}
+        </AnimatePresence>
       </main>
 
-      {/* Create Post Modal */}
+      {/* Modal */}
       <CreatePostModal
         show={modalOpen}
         onClose={closeModal}

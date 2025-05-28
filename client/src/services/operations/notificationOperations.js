@@ -1,61 +1,70 @@
-import { axiosConnector } from "../axios";
-import { endPoints } from "../apis";
+import { axiosConnector } from "../../services/axios";
+import {
+  setLoading,
+  setError,
+  setNotifications,
+  markRead,
+  markAllRead,
+  deleteNotification,
+  addNotification,
+} from "../../redux/Slices/notificationSlice";
 import toast from "react-hot-toast";
-import { setLoading, setNotifications } from "../../redux/Slices/notificationSlice";
 
-export const getNotifications = () => async (dispatch) => {
+const baseUrl = "/notifications";
+
+// 🆕 Create notification
+export const createNotification = (data) => async (dispatch) => {
+  try {
+    const res = await axiosConnector("POST", baseUrl, data);
+    dispatch(addNotification(res.data.notification));
+  } catch (error) {
+    console.error("Notification creation failed", error.message);
+  }
+};
+
+// 📥 Get all notifications
+export const fetchNotifications = () => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("GET", endPoints.GET_NOTIFICATIONS);
-    if (!res.data.success) throw new Error(res.data.message);
+    const res = await axiosConnector("GET", baseUrl);
     dispatch(setNotifications(res.data.notifications));
   } catch (error) {
-    toast.error(error.response?.data?.message || error.message || "Failed to fetch notifications");
+    toast.error("Failed to load notifications");
+    dispatch(setError(error.message));
   } finally {
     dispatch(setLoading(false));
   }
 };
 
-export const markAsRead = (notificationId) => async (dispatch) => {
-  dispatch(setLoading(true));
+// ✅ Mark selected as read
+export const markNotificationsAsRead = (ids) => async (dispatch) => {
   try {
-    const res = await axiosConnector("POST", endPoints.MARK_NOTIFICATION_READ, { notificationId });
-    if (!res.data.success) throw new Error(res.data.message);
-    toast.success("Notification marked as read");
-    dispatch(setNotifications(notificationId));
+    const res = await axiosConnector("PUT", `${baseUrl}/read`, { ids });
+    dispatch(markRead(ids));
   } catch (error) {
-    toast.error(error.response?.data?.message || error.message || "Failed to mark notification");
-  } finally {
-    dispatch(setLoading(false));
+    toast.error("Failed to mark as read");
+    dispatch(setError(error.message));
   }
 };
 
-export const createNotification = (notificationId) => async (dispatch) => {
-  dispatch(setLoading(true));
+// ✅ Mark all as read
+export const markAllNotificationsAsRead = () => async (dispatch) => {
   try {
-    const res = await axiosConnector("POST", endPoints.CREATE_NOTIFICATION, { notificationId });
-    if (!res.data.success) throw new Error(res.data.message);
-    toast.success("Notification created");
-    dispatch(setNotifications(notificationId));
+    await axiosConnector("PUT", `${baseUrl}/read-all`);
+    dispatch(markAllRead());
   } catch (error) {
-    toast.error(error.response?.data?.message || error.message || "Failed to create notification");
-  } finally {
-    dispatch(setLoading(false));
+    toast.error("Failed to mark all as read");
+    dispatch(setError(error.message));
   }
 };
 
-
-export const DELETE_NOTIFICATION = (notificationId) => async (dispatch) => {
-  dispatch(setLoading(true));
+// ❌ Delete notification
+export const removeNotification = (notificationId) => async (dispatch) => {
   try {
-    const res = await axiosConnector("POST", endPoints.DELETE_NOTIFICATION, { notificationId });
-    if (!res.data.success) throw new Error(res.data.message);
-    toast.success("Notification Deleted");
-    dispatch(markNotificationRead(notificationId));
+    await axiosConnector("DELETE", `${baseUrl}/${notificationId}`);
+    dispatch(deleteNotification(notificationId));
   } catch (error) {
-    toast.error(error.response?.data?.message || error.message || "Failed to delete notificatoin");
-  } finally {
-    dispatch(setLoading(false));
+    toast.error("Failed to delete notification");
+    dispatch(setError(error.message));
   }
 };
-

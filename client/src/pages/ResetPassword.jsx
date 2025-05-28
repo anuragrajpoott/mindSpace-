@@ -1,20 +1,21 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate, Link } from "react-router-dom";
-import { login } from "../services/operations/authOperations";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { resetPassword } from "../services/operations/authOperations";
 import logo from "../assets/images/logo.png";
 import { FcCloseUpMode } from "react-icons/fc";
 
-const Login = () => {
+const ResetPassword = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { token } = useParams(); // Assuming reset token comes as URL param
 
   const [formData, setFormData] = useState({
-    userName: "",
     password: "",
+    confirmPassword: "",
   });
 
-  const { userName, password } = formData;
+  const { password, confirmPassword } = formData;
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -22,8 +23,13 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(login(formData, navigate));
-    // Optionally keep form data to let user retry without clearing
+
+    if (password !== confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    dispatch(resetPassword({ token, password }, navigate));
   };
 
   return (
@@ -34,28 +40,15 @@ const Login = () => {
         <span className="font-bold text-xl">Mind Space +</span>
       </Link>
 
-      {/* Login Form */}
+      {/* Reset Password Form */}
       <form
         className="flex flex-col items-center justify-center gap-5"
         onSubmit={handleSubmit}
       >
-        <h2 className="text-2xl font-semibold">Welcome Back!</h2>
+        <h2 className="text-2xl font-semibold">Reset Your Password</h2>
 
         <label className="flex flex-col w-[300px] text-left">
-          <span className="mb-1">Username</span>
-          <input
-            type="text"
-            name="userName"
-            value={userName}
-            onChange={handleChange}
-            required
-            className="border-2 p-2 rounded"
-            autoComplete="username"
-          />
-        </label>
-
-        <label className="flex flex-col w-[300px] text-left">
-          <span className="mb-1">Password</span>
+          <span className="mb-1">New Password</span>
           <input
             type="password"
             name="password"
@@ -63,28 +56,35 @@ const Login = () => {
             onChange={handleChange}
             required
             className="border-2 p-2 rounded"
-            autoComplete="current-password"
+            autoComplete="new-password"
           />
-          <Link
-            to="/forgot-password"
-            className="self-end mt-1 italic text-sm text-blue-600 hover:underline"
-          >
-            Forgot Password?
-          </Link>
+        </label>
+
+        <label className="flex flex-col w-[300px] text-left">
+          <span className="mb-1">Confirm New Password</span>
+          <input
+            type="password"
+            name="confirmPassword"
+            value={confirmPassword}
+            onChange={handleChange}
+            required
+            className="border-2 p-2 rounded"
+            autoComplete="new-password"
+          />
         </label>
 
         <button
           type="submit"
           className="bg-amber-200 hover:bg-amber-300 px-5 py-2 rounded font-semibold transition"
         >
-          Log In
+          Reset Password
         </button>
 
         <Link
-          to="/sign-up"
+          to="/log-in"
           className="italic text-sm text-gray-600 hover:underline"
         >
-          Don’t have an account?
+          Back to Log In
         </Link>
       </form>
 
@@ -98,4 +98,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default ResetPassword;

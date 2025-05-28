@@ -8,7 +8,7 @@ const Home = () => {
   return (
     <div className="flex flex-col justify-between min-h-screen p-10">
       {/* Logo and Title */}
-      <header>
+      <header role="banner">
         <Link to="/" aria-label="Go to Home">
           <div className="flex items-center gap-2.5 cursor-pointer">
             <img src={logo} alt="Mind Space Plus logo" className="h-10" />
@@ -18,26 +18,29 @@ const Home = () => {
       </header>
 
       {/* Main Welcome Section */}
-      <main className="flex flex-col lg:flex-row items-center mt-10 gap-10">
+      <main role="main" className="flex flex-col lg:flex-row items-center mt-10 gap-10">
         {/* Left - Text */}
-        <section className="flex flex-col gap-10 items-center justify-center w-full lg:w-1/2 text-center lg:text-left">
+        <section
+          className="flex flex-col gap-10 items-center justify-center w-full lg:w-1/2 text-center lg:text-left"
+          aria-label="Welcome message and navigation"
+        >
           <h1 className="font-bold text-3xl">Welcome to Mind Space +</h1>
           <p className="italic text-lg text-gray-700 max-w-md">
             Share your journey, connect with others, and find resources to help you thrive during your extra hours.
           </p>
           <div className="flex gap-5">
-            <Link to="/log-in">
+            <Link to="/log-in" aria-label="Continue Journey - Log In">
               <button
                 className="p-3 bg-amber-100 hover:bg-amber-200 rounded-lg shadow-md transition"
-                aria-label="Continue Journey - Log In"
+                type="button"
               >
                 Continue Journey
               </button>
             </Link>
-            <Link to="/sign-up">
+            <Link to="/sign-up" aria-label="Start Journey - Sign Up">
               <button
                 className="p-3 bg-amber-100 hover:bg-amber-200 rounded-lg shadow-md transition"
-                aria-label="Start Journey - Sign Up"
+                type="button"
               >
                 Start Journey
               </button>
@@ -57,7 +60,7 @@ const Home = () => {
       </main>
 
       {/* Footer */}
-      <footer className="flex justify-end mt-10 text-sm text-gray-600" aria-label="Footer">
+      <footer role="contentinfo" className="flex justify-end mt-10 text-sm text-gray-600" aria-label="Footer">
         <span className="font-semibold flex gap-2 items-center">
           Made with <FcCloseUpMode aria-hidden="true" /> by @anuragrajpoott
         </span>

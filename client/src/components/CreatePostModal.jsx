@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+
+const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
 const CreatePostModal = ({ show, onClose, onSubmit }) => {
   const [content, setContent] = useState("");
@@ -6,6 +8,7 @@ const CreatePostModal = ({ show, onClose, onSubmit }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Reset form when modal closes
   useEffect(() => {
     if (!show) {
       setContent("");
@@ -15,41 +18,38 @@ const CreatePostModal = ({ show, onClose, onSubmit }) => {
     }
   }, [show]);
 
+  // Cleanup image preview URL
   useEffect(() => {
     return () => {
-      if (imagePreview) {
-        URL.revokeObjectURL(imagePreview);
-      }
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
     };
   }, [imagePreview]);
 
+  // ESC key closes modal
   useEffect(() => {
     const handleEsc = (e) => {
-      if (e.key === "Escape" && show) {
-        onClose();
-      }
+      if (e.key === "Escape" && show) onClose();
     };
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [show, onClose]);
 
-  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+  const handleImageChange = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > MAX_SIZE) {
-        alert("Image size should be less than 5MB.");
-        e.target.value = null;
-        return;
-      }
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+    if (file.size > MAX_SIZE) {
+      alert("Image size should be less than 5MB.");
+      return;
     }
-  };
+
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  }, []);
 
   const handleSubmit = async () => {
     if (content.trim() === "") return;
+
     setSubmitting(true);
     await onSubmit({ content, image: imageFile });
     setSubmitting(false);
@@ -68,7 +68,7 @@ const CreatePostModal = ({ show, onClose, onSubmit }) => {
       <div className="bg-white rounded-md p-6 max-w-lg w-full relative shadow-lg">
         <button
           onClick={onClose}
-          className="absolute top-2 right-3 text-3xl font-bold leading-none hover:text-gray-700 focus:outline-none"
+          className="absolute top-2 right-3 text-3xl font-bold leading-none hover:text-gray-700"
           aria-label="Close Create Post Modal"
         >
           &times;
@@ -94,14 +94,14 @@ const CreatePostModal = ({ show, onClose, onSubmit }) => {
           <input
             id="image-upload"
             type="file"
-            onChange={handleImageChange}
             accept="image/*"
+            onChange={handleImageChange}
             aria-describedby="image-upload-desc"
           />
           {imagePreview && (
             <img
               src={imagePreview}
-              alt="Selected preview"
+              alt="Preview of selected"
               className="mt-4 rounded-md max-h-48 object-contain"
             />
           )}
@@ -109,12 +109,13 @@ const CreatePostModal = ({ show, onClose, onSubmit }) => {
 
         <button
           onClick={handleSubmit}
-          disabled={content.trim() === "" || submitting}
-          className={`mt-6 px-6 py-2 rounded-md text-white ${content.trim() === "" || submitting
-            ? "bg-blue-300 cursor-not-allowed"
-            : "bg-blue-600 hover:bg-blue-700"
-            }`}
-          aria-disabled={content.trim() === "" || submitting}
+          disabled={submitting || content.trim() === ""}
+          className={`mt-6 px-6 py-2 rounded-md text-white transition-colors duration-200 ${
+            submitting || content.trim() === ""
+              ? "bg-blue-300 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
+          }`}
+          aria-disabled={submitting || content.trim() === ""}
         >
           {submitting ? "Posting..." : "Post"}
         </button>

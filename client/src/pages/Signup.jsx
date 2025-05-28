@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { register } from "../services/operations/authOperations";
 import logo from "../assets/images/logo.png";
 import { FcCloseUpMode } from "react-icons/fc";
@@ -19,10 +18,7 @@ const Signup = () => {
   const { userName, password, confirmPassword } = formData;
 
   const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = (e) => {
@@ -33,8 +29,8 @@ const Signup = () => {
       return;
     }
 
-    dispatch(register(formData, navigate));
-    setFormData({ userName: "", password: "", confirmPassword: "" });
+    dispatch(register({ userName, password }, navigate));
+    // Note: We send only userName & password to backend, confirmPassword is frontend validation only
   };
 
   return (
@@ -50,10 +46,10 @@ const Signup = () => {
         className="flex flex-col items-center justify-center gap-5"
         onSubmit={handleSubmit}
       >
-        <span className="text-2xl font-semibold">Start Your Journey!</span>
+        <h2 className="text-2xl font-semibold">Start Your Journey!</h2>
 
         <label className="flex flex-col w-[300px] text-left">
-          <p className="mb-1">Username</p>
+          <span className="mb-1">Username</span>
           <input
             type="text"
             name="userName"
@@ -61,11 +57,12 @@ const Signup = () => {
             onChange={handleChange}
             required
             className="border-2 p-2 rounded"
+            autoComplete="username"
           />
         </label>
 
         <label className="flex flex-col w-[300px] text-left">
-          <p className="mb-1">Password</p>
+          <span className="mb-1">Password</span>
           <input
             type="password"
             name="password"
@@ -73,11 +70,12 @@ const Signup = () => {
             onChange={handleChange}
             required
             className="border-2 p-2 rounded"
+            autoComplete="new-password"
           />
         </label>
 
         <label className="flex flex-col w-[300px] text-left">
-          <p className="mb-1">Confirm Password</p>
+          <span className="mb-1">Confirm Password</span>
           <input
             type="password"
             name="confirmPassword"
@@ -85,12 +83,13 @@ const Signup = () => {
             onChange={handleChange}
             required
             className="border-2 p-2 rounded"
+            autoComplete="new-password"
           />
         </label>
 
         <button
           type="submit"
-          className="bg-amber-200 hover:bg-amber-300 px-5 py-2 rounded font-semibold"
+          className="bg-amber-200 hover:bg-amber-300 px-5 py-2 rounded font-semibold transition"
         >
           Sign Up
         </button>
@@ -104,11 +103,11 @@ const Signup = () => {
       </form>
 
       {/* Footer */}
-      <div className="flex justify-end mt-10 text-sm text-gray-600">
+      <footer className="flex justify-end mt-10 text-sm text-gray-600">
         <span className="font-semibold flex gap-2 items-center">
           Made with <FcCloseUpMode /> by @anuragrajpoott
         </span>
-      </div>
+      </footer>
     </div>
   );
 };
