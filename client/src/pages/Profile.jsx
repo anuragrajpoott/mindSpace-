@@ -25,11 +25,11 @@ const Profile = () => {
 
   const fileInputRef = useRef(null);
 
-  // Load profile on mount and when user ID changes
+  // Load profile when user id is available
   useEffect(() => {
     if (!user?._id) return;
 
-    async function loadProfile() {
+    const loadProfile = async () => {
       try {
         const profileData = await dispatch(fetchProfile(user._id)).unwrap();
         setProfile(profileData);
@@ -37,7 +37,7 @@ const Profile = () => {
       } catch {
         toast.error("Failed to load profile");
       }
-    }
+    };
 
     loadProfile();
   }, [dispatch, user?._id]);
@@ -51,11 +51,9 @@ const Profile = () => {
     try {
       setUpdatingBio(true);
       await dispatch(updateProfile({ bio })).unwrap();
-
       toast.success("Bio updated!");
       setEdit(false);
 
-      // Refresh profile after update
       const updatedProfile = await dispatch(fetchProfile(user._id)).unwrap();
       setProfile(updatedProfile);
       setBio(updatedProfile.bio || "");
@@ -66,16 +64,17 @@ const Profile = () => {
     }
   }, [bio, dispatch, user?._id]);
 
-  // Open file picker for profile image upload
+  // Trigger file picker
   const onProfileImageClick = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
 
-  // Handle profile image file selection and upload
+  // Handle profile image upload
   const handleImageChange = useCallback(
     async (e) => {
       if (!e.target.files?.length) return;
       const file = e.target.files[0];
+
       try {
         setUploadingImage(true);
 
@@ -86,7 +85,6 @@ const Profile = () => {
 
         toast.success("Profile image updated!");
 
-        // Refresh profile after image update
         const updatedProfile = await dispatch(fetchProfile(user._id)).unwrap();
         setProfile(updatedProfile);
       } catch {
@@ -103,7 +101,6 @@ const Profile = () => {
     setPasswordLoading(true);
     try {
       await dispatch(updatePassword({ currentPassword, newPassword })).unwrap();
-
       toast.success("Password updated successfully!");
       setShowPasswordModal(false);
     } catch (error) {

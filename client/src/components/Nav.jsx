@@ -46,11 +46,11 @@ const Nav = () => {
   }, []);
 
   return (
-    <nav className="bg-white shadow-md px-6 py-4 sticky top-0 z-50">
+    <nav className="bg-white shadow-md px-6 py-4 sticky top-0 z-50" role="navigation" aria-label="Main navigation">
       <div className="flex flex-wrap items-center justify-between gap-4">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <img src={logo} alt="logo" className="h-10" />
+        <Link to="/" className="flex items-center gap-2" aria-label="Home">
+          <img src={logo} alt="Mind Space + logo" className="h-10" />
           <span className="font-bold text-xl text-blue-800">Mind Space +</span>
         </Link>
 
@@ -70,6 +70,7 @@ const Nav = () => {
                   isActive ? "text-blue-700 font-semibold" : "text-gray-700"
                 }`
               }
+              aria-current={({ isActive }) => (isActive ? "page" : undefined)}
             >
               {icon} {label}
             </NavLink>
@@ -80,7 +81,16 @@ const Nav = () => {
         <div className="flex items-center gap-4">
           {/* Search Box */}
           <div className="flex items-center border rounded-md px-2">
-            <FcSearch className="cursor-pointer" onClick={handleSearch} />
+            <FcSearch
+              className="cursor-pointer"
+              onClick={handleSearch}
+              role="button"
+              tabIndex={0}
+              aria-label="Submit search"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearch();
+              }}
+            />
             <input
               type="text"
               placeholder="Search..."
@@ -93,10 +103,7 @@ const Nav = () => {
           </div>
 
           {/* Profile Dropdown */}
-          <div
-            className="relative"
-            ref={dropdownRef}
-          >
+          <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen((prev) => !prev)}
               className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-2xl border"
@@ -107,7 +114,7 @@ const Nav = () => {
               {user?.profileImage ? (
                 <img
                   src={user.profileImage}
-                  alt="profile"
+                  alt="Profile"
                   className="h-10 w-10 rounded-full object-cover"
                 />
               ) : (
@@ -120,6 +127,7 @@ const Nav = () => {
               <div
                 className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md py-2 z-50"
                 role="menu"
+                aria-label="Profile options"
               >
                 <Link
                   to="/profile"

@@ -18,14 +18,14 @@ const CreatePostModal = ({ show, onClose, onSubmit }) => {
     }
   }, [show]);
 
-  // Cleanup image preview URL
+  // Cleanup object URL when imagePreview changes or component unmounts
   useEffect(() => {
     return () => {
       if (imagePreview) URL.revokeObjectURL(imagePreview);
     };
   }, [imagePreview]);
 
-  // ESC key closes modal
+  // Close modal on ESC key press
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape" && show) onClose();
@@ -51,9 +51,12 @@ const CreatePostModal = ({ show, onClose, onSubmit }) => {
     if (content.trim() === "") return;
 
     setSubmitting(true);
-    await onSubmit({ content, image: imageFile });
-    setSubmitting(false);
-    onClose();
+    try {
+      await onSubmit({ content, image: imageFile });
+      onClose();
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!show) return null;

@@ -35,6 +35,7 @@ const MoodLog = () => {
   return (
     <section className="bg-white rounded-lg shadow p-6 mb-10 max-w-3xl mx-auto">
       <h2 className="text-2xl font-semibold mb-4 text-blue-800">Daily Mood Check-in</h2>
+
       {moodLoading ? (
         <p>Loading mood log...</p>
       ) : moodSubmitted || moodLog?.mood ? (
@@ -64,6 +65,7 @@ const MoodLog = () => {
               </button>
             ))}
           </div>
+
           <button
             type="button"
             onClick={handleMoodSubmit}

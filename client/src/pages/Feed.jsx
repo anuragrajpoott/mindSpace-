@@ -19,16 +19,18 @@ const Feed = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Open modal only if not loading or submitting
   const openModal = () => {
     if (!loading && !isSubmitting) setModalOpen(true);
   };
-
   const closeModal = () => setModalOpen(false);
 
+  // Load posts on mount
   useEffect(() => {
     dispatch(setPosts());
   }, [dispatch]);
 
+  // Handle creating a new post
   const handleAddPost = async ({ content, image }) => {
     try {
       setIsSubmitting(true);
@@ -43,6 +45,7 @@ const Feed = () => {
     }
   };
 
+  // Handle liking a post
   const handleLikePost = async (postId) => {
     try {
       await dispatch(toggleLike(postId));
@@ -51,6 +54,7 @@ const Feed = () => {
     }
   };
 
+  // Sort posts by creation date descending
   const sortedPosts = [...posts].sort(
     (a, b) => new Date(b.createdAt || b.time) - new Date(a.createdAt || a.time)
   );
@@ -58,7 +62,10 @@ const Feed = () => {
   return (
     <div className="flex justify-around min-h-screen p-10 bg-blue-50">
       {/* Sidebar */}
-      <aside className="h-fit w-[30%] bg-white p-6 rounded-lg shadow">
+      <aside
+        className="h-fit w-[30%] bg-white p-6 rounded-lg shadow"
+        aria-label="Trending topics"
+      >
         <div className="mb-4">
           <p className="text-lg font-bold">📈 Trending Now</p>
           <p className="text-sm text-gray-500">Curated by Mind Space + Supporters</p>
@@ -92,9 +99,17 @@ const Feed = () => {
           </div>
         </div>
 
-        {/* Loading & Empty */}
-        {loading && <p>Loading posts...</p>}
-        {!loading && sortedPosts.length === 0 && <p>No posts found.</p>}
+        {/* Loading & Empty states */}
+        {loading && (
+          <p role="status" className="text-center text-gray-500 mt-4">
+            Loading posts...
+          </p>
+        )}
+        {!loading && sortedPosts.length === 0 && (
+          <p role="alert" className="text-center text-gray-500 mt-4">
+            No posts found.
+          </p>
+        )}
 
         {/* Post List */}
         <AnimatePresence>
@@ -108,7 +123,7 @@ const Feed = () => {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 className="bg-white rounded-lg p-6 shadow"
-                aria-label={`Post by ${post.user?.userName || "user"}`}
+                aria-label={`Post by @${post.user?.userName || "user"}`}
               >
                 <div className="flex items-center gap-4 mb-2">
                   <div className="h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center text-xl">
@@ -118,7 +133,11 @@ const Feed = () => {
                     <p className="font-semibold text-blue-900">
                       @{post.user?.userName || "user"}
                     </p>
-                    <time className="text-sm text-gray-400" dateTime={post.createdAt}>
+                    <time
+                      className="text-sm text-gray-400"
+                      dateTime={post.createdAt}
+                      aria-label={`Posted ${dayjs(post.createdAt).fromNow()}`}
+                    >
                       {dayjs(post.createdAt).fromNow()}
                     </time>
                   </div>
@@ -131,6 +150,7 @@ const Feed = () => {
                     src={post.image}
                     alt="Post visual"
                     className="rounded-md mb-3 max-h-64 object-cover"
+                    loading="lazy"
                   />
                 )}
 

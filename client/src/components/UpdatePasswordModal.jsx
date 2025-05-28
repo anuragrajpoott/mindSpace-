@@ -1,9 +1,37 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 const UpdatePasswordModal = ({ show, onClose, onUpdatePassword, loading }) => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const modalRef = useRef(null);
+
+  // Clear inputs when modal closes
+  useEffect(() => {
+    if (!show) {
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+    }
+  }, [show]);
+
+  // Focus first input on open
+  useEffect(() => {
+    if (show) {
+      modalRef.current?.querySelector("input")?.focus();
+    }
+  }, [show]);
+
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && show) {
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [show, onClose]);
 
   const handleSubmit = () => {
     if (!currentPassword || !newPassword || !confirmNewPassword) {
@@ -29,6 +57,7 @@ const UpdatePasswordModal = ({ show, onClose, onUpdatePassword, loading }) => {
       role="dialog"
       aria-modal="true"
       aria-labelledby="update-password-title"
+      ref={modalRef}
     >
       <div className="bg-white rounded-lg p-6 w-96 max-w-full relative shadow-lg">
         <h2
@@ -49,6 +78,7 @@ const UpdatePasswordModal = ({ show, onClose, onUpdatePassword, loading }) => {
           className="w-full border rounded-md p-2 mb-4"
           disabled={loading}
           autoComplete="current-password"
+          aria-required="true"
         />
 
         <label className="block mb-2 font-medium" htmlFor="newPassword">
@@ -62,6 +92,7 @@ const UpdatePasswordModal = ({ show, onClose, onUpdatePassword, loading }) => {
           className="w-full border rounded-md p-2 mb-4"
           disabled={loading}
           autoComplete="new-password"
+          aria-required="true"
         />
 
         <label className="block mb-2 font-medium" htmlFor="confirmNewPassword">
@@ -75,6 +106,7 @@ const UpdatePasswordModal = ({ show, onClose, onUpdatePassword, loading }) => {
           className="w-full border rounded-md p-2 mb-6"
           disabled={loading}
           autoComplete="new-password"
+          aria-required="true"
         />
 
         <div className="flex justify-end gap-3">
@@ -100,6 +132,7 @@ const UpdatePasswordModal = ({ show, onClose, onUpdatePassword, loading }) => {
           onClick={onClose}
           aria-label="Close modal"
           className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+          type="button"
         >
           ✕
         </button>

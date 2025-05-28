@@ -8,28 +8,43 @@ import { FcCloseUpMode } from "react-icons/fc";
 const ResetPassword = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { token } = useParams(); // Assuming reset token comes as URL param
+  const { token } = useParams(); // reset token from URL
 
   const [formData, setFormData] = useState({
     password: "",
     confirmPassword: "",
   });
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const { password, confirmPassword } = formData;
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setError(""); // clear error on input change
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      setError("Passwords do not match");
       return;
     }
 
-    dispatch(resetPassword({ token, password }, navigate));
+    try {
+      setLoading(true);
+      setError("");
+      // Assuming resetPassword returns a thunk with unwrap()
+      await dispatch(resetPassword({ token, password })).unwrap();
+      // On success navigate to login page
+      navigate("/log-in");
+    } catch (err) {
+      setError(err.message || "Failed to reset password");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -57,6 +72,8 @@ const ResetPassword = () => {
             required
             className="border-2 p-2 rounded"
             autoComplete="new-password"
+            minLength={6}
+            disabled={loading}
           />
         </label>
 
@@ -70,14 +87,21 @@ const ResetPassword = () => {
             required
             className="border-2 p-2 rounded"
             autoComplete="new-password"
+            minLength={6}
+            disabled={loading}
           />
         </label>
 
+        {error && <p className="text-red-600">{error}</p>}
+
         <button
           type="submit"
-          className="bg-amber-200 hover:bg-amber-300 px-5 py-2 rounded font-semibold transition"
+          className={`bg-amber-200 hover:bg-amber-300 px-5 py-2 rounded font-semibold transition ${
+            loading ? "opacity-60 cursor-not-allowed" : ""
+          }`}
+          disabled={loading}
         >
-          Reset Password
+          {loading ? "Resetting..." : "Reset Password"}
         </button>
 
         <Link

@@ -1,17 +1,23 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getMessages, sendMessage } from "../services/operations/messageOperations";
-import { fetchChats } from "../services/operations/chatOperations"; // hypothetical
+import { fetchChats } from "../services/operations/chatOperations"; // hypothetical fetchChats thunk
 import toast from "react-hot-toast";
 
 const Messages = () => {
   const dispatch = useDispatch();
 
-  const { chats, loading: chatsLoading } = useSelector((state) => state.chats); // assume chats slice
+  // Select chats state and loading flag
+  const { chats, loading: chatsLoading } = useSelector((state) => state.chats);
+
+  // Select messages state and loading flag
   const { messages, loading: messagesLoading } = useSelector((state) => state.messages);
 
+  // Active chat ID and input message text states
   const [activeChatId, setActiveChatId] = useState(null);
   const [message, setMessage] = useState("");
+
+  // Ref to scroll to bottom of messages
   const messagesEndRef = useRef(null);
 
   // Fetch chats on mount
@@ -24,30 +30,35 @@ const Messages = () => {
       .catch(() => toast.error("Failed to load chats"));
   }, [dispatch]);
 
-  // Fetch messages when active chat changes
+  // Fetch messages when activeChatId changes
   useEffect(() => {
     if (activeChatId) {
-      dispatch(getMessages(activeChatId)).catch(() => toast.error("Failed to load messages"));
+      dispatch(getMessages({ chatId: activeChatId }))
+        .unwrap()
+        .catch(() => toast.error("Failed to load messages"));
     }
   }, [activeChatId, dispatch]);
 
-  // Scroll to bottom when messages update
+  // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Handler for sending message
   const handleSendMessage = async () => {
     if (message.trim() === "") return;
 
     try {
-      await dispatch(sendMessage(activeChatId, message)).unwrap();
+      await dispatch(sendMessage({ chatId: activeChatId, text: message })).unwrap();
       setMessage("");
-      dispatch(getMessages(activeChatId));
+      // Ideally, your sendMessage thunk should update messages in state,
+      // so no need to dispatch getMessages here again
     } catch {
       toast.error("Failed to send message");
     }
   };
 
+  // Get active chat object for display
   const activeChat = chats?.find((chat) => chat._id === activeChatId);
 
   return (

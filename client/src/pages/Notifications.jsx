@@ -20,15 +20,22 @@ const getIcon = (type) => iconMap[type] || null;
 
 const Notifications = () => {
   const dispatch = useDispatch();
+
+  // Select notifications and loading from Redux store
   const { notifications = [], loading } = useSelector((state) => state.notifications);
 
   useEffect(() => {
-    dispatch(getNotifications()).catch(() => {
-      toast.error("Failed to load notifications");
-    });
+    dispatch(getNotifications())
+      .unwrap()
+      .catch(() => {
+        toast.error("Failed to load notifications");
+      });
   }, [dispatch]);
 
-  const sortedNotifications = [...notifications].sort((a, b) => new Date(b.time) - new Date(a.time));
+  // Sort notifications newest first
+  const sortedNotifications = [...notifications].sort(
+    (a, b) => new Date(b.time) - new Date(a.time)
+  );
 
   return (
     <div className="min-h-screen bg-blue-50 p-6">
@@ -36,8 +43,7 @@ const Notifications = () => {
         <h1 className="text-3xl font-bold text-blue-800" tabIndex={0}>
           Notifications
         </h1>
-
-        {/* Optional Clear All (you can implement clearNotifications logic) */}
+        {/* Optional Clear All button for future use */}
         {/* <button
           className="text-sm text-blue-600 hover:underline"
           onClick={() => dispatch(clearNotifications())}

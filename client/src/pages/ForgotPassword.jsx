@@ -9,14 +9,30 @@ const ForgotPassword = () => {
   const dispatch = useDispatch();
 
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(""); // success or error message
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setEmail(e.target.value);
+    setError("");
+    setMessage("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(forgotPassword({ email }));
+    setLoading(true);
+    setError("");
+    setMessage("");
+    try {
+      await dispatch(forgotPassword({ email })).unwrap();
+      setMessage("Reset link sent! Check your email.");
+      setEmail("");
+    } catch (err) {
+      setError(err.message || "Failed to send reset link");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -44,14 +60,21 @@ const ForgotPassword = () => {
             required
             className="border-2 p-2 rounded"
             autoComplete="email"
+            disabled={loading}
           />
         </label>
 
+        {error && <p className="text-red-600">{error}</p>}
+        {message && <p className="text-green-600">{message}</p>}
+
         <button
           type="submit"
-          className="bg-amber-200 hover:bg-amber-300 px-5 py-2 rounded font-semibold transition"
+          className={`bg-amber-200 hover:bg-amber-300 px-5 py-2 rounded font-semibold transition ${
+            loading ? "opacity-60 cursor-not-allowed" : ""
+          }`}
+          disabled={loading}
         >
-          Send Reset Link
+          {loading ? "Sending..." : "Send Reset Link"}
         </button>
 
         <Link
