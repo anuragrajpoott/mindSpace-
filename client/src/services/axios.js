@@ -2,7 +2,7 @@
 import axios from "axios";
 
 export const axiosInstance = axios.create({
-  baseURL: "http://localhost:4000/api/v1", // Change this to match your server
+  baseURL: "https://mind-space-plus.onrender.com/api/v1", // Change this to match your server
   withCredentials: true, // Important for sending/receiving cookies
 });
 
