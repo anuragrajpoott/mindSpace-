@@ -2,7 +2,7 @@
 
 import { axiosConnector } from "../../services/axios";
 import { endPoints } from "../../services/apis";
-import { setLoading, setResources } from "../../redux/Slices/resourceSlice";
+import { setLoading, setSupportResouce } from "../../redux/Slices/supportResourceSlice";
 import toast from "react-hot-toast";
 
 const { GET_SUPPORT_RESOURCES } = endPoints;
@@ -18,7 +18,7 @@ export const fetchResources = () => async (dispatch) => {
 
     if (!success) throw new Error("Failed to fetch support resources");
 
-    dispatch(setResources(resources));
+    dispatch(setSupportResouce(resources));
   } catch (error) {
     console.error("Fetch Resources Error:", error);
     toast.error(error?.response?.data?.message || error.message || "Unable to load resources");

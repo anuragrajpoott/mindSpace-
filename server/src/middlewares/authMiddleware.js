@@ -3,34 +3,74 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+/**
+ * Middleware to authenticate users based on JWT.
+ * Token can be passed via:
+ * - Cookie: req.cookies.token
+ * - Header: Authorization: Bearer <token>
+ * - Query param (optional fallback): ?token=
+ */
 export const authenticateUser = (req, res, next) => {
   try {
-    // Extract token from cookie or Authorization header
-    const token =
-      req.cookies?.token ||
-      (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')
-        ? req.headers.authorization.split(' ')[1]
-        : null);
+    const token = extractToken(req);
 
     if (!token) {
-      return res.status(401).json({ success: false, message: 'Unauthorized: No token provided' });
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized: Token not provided',
+      });
     }
 
-    // Verify JWT token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Attach user info to request object
     req.user = {
       id: decoded.id,
       userName: decoded.userName,
+      role: decoded.role || 'user', // future-proofing for role-based access
     };
 
     next();
   } catch (error) {
-    console.error('Authentication error:', error);
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ success: false, message: 'Unauthorized: Token expired' });
-    }
-    return res.status(401).json({ success: false, message: 'Unauthorized: Invalid token' });
+    console.error('Authentication Error:', error);
+
+    let message = 'Unauthorized';
+    if (error.name === 'TokenExpiredError') message = 'Token expired';
+    else if (error.name === 'JsonWebTokenError') message = 'Invalid token';
+
+    return res.status(401).json({ success: false, message });
   }
 };
+
+/**
+ * Helper function to extract token from request.
+ */
+const extractToken = (req) => {
+  if (req.cookies?.token) return req.cookies.token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer ')
+  ) {
+    return req.headers.authorization.split(' ')[1];
+  }
+
+  if (req.query?.token) return req.query.token;
+
+  return null;
+};
+
+
+
+
+export const authorizeRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden: Insufficient permissions',
+      });
+    }
+    next();
+  };
+};
+

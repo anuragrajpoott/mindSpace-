@@ -2,7 +2,7 @@
 
 import { axiosConnector } from "../../services/axios";
 import { endPoints } from "../../services/apis";
-import { setLoading, setSupportPosts } from "../../redux/Slices/supportPostSlice";
+import { setLoading, setSupportPost } from "../../redux/Slices/supportPostSlice";
 import toast from "react-hot-toast";
 
 const {  CREATE_SUPPORT_POST } = endPoints;
@@ -16,7 +16,7 @@ export const createSupportPost = (content) => async (dispatch) => {
 
     if (!success) throw new Error("Failed to create post");
 
-    dispatch(addSupportPost(post));
+    dispatch(setSupportPost(post));
     toast.success("Support post created");
   } catch (error) {
     console.error("Create Support Post Error:", error);

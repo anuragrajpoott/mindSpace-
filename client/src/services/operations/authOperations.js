@@ -34,15 +34,16 @@ export const login = (formData, navigate) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
     const res = await axiosConnector("POST", LOGIN, formData, {}, {}, true);
-    const { success, message, existingUser } = res.data;
+    const { success, message, user } = res.data;
 
     if (!success) throw new Error(message);
 
     toast.success("Login successful");
-    dispatch(setUser(existingUser));
-    localStorage.setItem("user", JSON.stringify(existingUser));
-    dispatch(setToken(existingUser.token));
-    localStorage.setItem("token", JSON.stringify(existingUser.token));
+    console.log(res)
+    dispatch(setUser(user));
+    localStorage.setItem("user", JSON.stringify(user));
+    dispatch(setToken(user.token));
+    localStorage.setItem("token", JSON.stringify(user.token));
     navigate("/feed");
   } catch (error) {
     console.error("Login error:", error);

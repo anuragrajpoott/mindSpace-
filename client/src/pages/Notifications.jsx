@@ -21,12 +21,12 @@ const getIcon = (type) => {
 
 const Notifications = () => {
   const dispatch = useDispatch();
-  const { notifications, loading, error } = useSelector((state) => state.notifications);
+  const { notifications = [], loading } = useSelector((state) => state.notifications);
 
   useEffect(() => {
-    dispatch(getNotifications())
-      // .unwrap()
-      .catch(() => toast.error("Failed to load notifications"));
+    dispatch(getNotifications()).catch(() => {
+      toast.error("Failed to load notifications");
+    });
   }, [dispatch]);
 
   return (
@@ -41,24 +41,13 @@ const Notifications = () => {
         aria-relevant="additions"
         role="list"
       >
-        {loading && (
+        {loading ? (
           <p className="text-gray-600 text-center" aria-live="assertive">
             Loading notifications...
           </p>
-        )}
-
-        {!loading && error && (
-          <p className="text-red-500 text-center" role="alert">
-            {error}
-          </p>
-        )}
-
-        {!loading && !error && notifications.length === 0 && (
+        ) : notifications.length === 0 ? (
           <p className="text-gray-600 text-center">No new notifications.</p>
-        )}
-
-        {!loading &&
-          !error &&
+        ) : (
           notifications.map((note) => (
             <article
               key={note._id}
@@ -77,7 +66,8 @@ const Notifications = () => {
                 </time>
               </div>
             </article>
-          ))}
+          ))
+        )}
       </section>
     </div>
   );

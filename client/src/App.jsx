@@ -13,7 +13,7 @@ import Support from './pages/Support.jsx';
 import Profile from './pages/Profile.jsx';
 
 const App = () => {
-  const { user, loading } = useSelector((state) => state.auth);
+  const { user, loading } = useSelector((state) => state.user);
 
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen text-2xl">Loading...</div>;

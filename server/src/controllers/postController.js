@@ -5,7 +5,7 @@ import { mailSender } from "../utils/mailSender.js";
 
 const cloudinaryV2 = cloudinary.v2;
 
-// ========== CREATE A POST ==========
+// ========== CREATE POST ==========
 export const createPost = async (req, res) => {
   try {
     const { content } = req.body;
@@ -26,12 +26,7 @@ export const createPost = async (req, res) => {
       return res.status(400).json({ success: false, message: "Post must contain text or image" });
     }
 
-    const newPost = await Post.create({
-      content,
-      image: imageUrl,
-      author: userId,
-    });
-
+    const newPost = await Post.create({ content, image: imageUrl, author: userId });
     await User.findByIdAndUpdate(userId, { $push: { posts: newPost._id } });
 
     const user = await User.findById(userId);
@@ -39,11 +34,11 @@ export const createPost = async (req, res) => {
       await mailSender(
         user.email,
         "New Post Created",
-        `<p>Hi ${user.firstName}, your new post was successfully published on Supportify+.</p>`
+        `<p>Hi ${user.firstName}, your post was successfully published on Supportify+.</p>`
       );
     }
 
-    res.status(201).json({ success: true, message: "Post created successfully", post: newPost });
+    res.status(201).json({ success: true, message: "Post created", post: newPost });
   } catch (error) {
     console.error("Create Post Error:", error);
     res.status(500).json({ success: false, message: "Error creating post", error: error.message });
@@ -114,7 +109,7 @@ export const updatePost = async (req, res) => {
 
     await post.save();
 
-    res.status(200).json({ success: true, message: "Post updated successfully", post });
+    res.status(200).json({ success: true, message: "Post updated", post });
   } catch (error) {
     console.error("Update Post Error:", error);
     res.status(500).json({ success: false, message: "Error updating post", error: error.message });
@@ -137,7 +132,7 @@ export const deletePost = async (req, res) => {
     await Post.findByIdAndDelete(postId);
     await User.findByIdAndUpdate(userId, { $pull: { posts: postId } });
 
-    res.status(200).json({ success: true, message: "Post deleted successfully" });
+    res.status(200).json({ success: true, message: "Post deleted" });
   } catch (error) {
     console.error("Delete Post Error:", error);
     res.status(500).json({ success: false, message: "Error deleting post", error: error.message });

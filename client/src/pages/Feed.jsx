@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { FcLike, FcBusinessman } from "react-icons/fc";
 import CreatePostModal from "../components/CreatePostModal";
-import { setPosts, addPost, likePost } from "../redux/Slices/postSlice";
+import { setPosts } from "../redux/Slices/postSlice";
 import toast from "react-hot-toast";
+import {toggleLike} from "../services/operations/likeOperations"
 
 const Feed = () => {
   const dispatch = useDispatch();
-  const { posts, loading, error } = useSelector((state) => state.posts);
+  const { posts, loading } = useSelector((state) => state.posts);
   const user = useSelector((state) => state.auth.user);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -28,7 +29,7 @@ const Feed = () => {
   const handleAddPost = async ({ content, image }) => {
     try {
       setIsSubmitting(true);
-      await dispatch(addPost({ content, image })).unwrap();
+      await dispatch(setPosts({ content, image })).unwrap();
       toast.success("Post created successfully");
       closeModal();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -42,7 +43,7 @@ const Feed = () => {
   // Handle liking a post
   const handleLikePost = async (postId) => {
     try {
-      await dispatch(likePost(postId)).unwrap();
+      await dispatch(toggleLike(postId))
     } catch (err) {
       toast.error("Failed to like post: " + (err.message || "Unknown error"));
     }
@@ -87,7 +88,7 @@ const Feed = () => {
 
         {/* Loading and error */}
         {loading && <p>Loading posts...</p>}
-        {error && <p className="text-red-600">Error: {error}</p>}
+        {/* {error && <p className="text-red-600">Error: {error}</p>} */}
 
         {/* Posts List */}
         {posts?.length === 0 && !loading && <p>No posts found.</p>}

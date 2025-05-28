@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
-import { fetchGroups } from "../redux/Slices/groupSlice";
-import { fetchSupportPosts } from "../redux/Slices/supportPostSlice";
-import { fetchMoodLogs, logMood } from "../redux/Slices/moodSlice";
-import { fetchResources } from "../redux/Slices/resourceSlice";
+import { fetchGroups } from "../services/operations/groupOperations";
+import { logMood } from "../services/operations/moodLogOperations";
+import { fetchResources } from "../services/operations/supportResourceOperations";
 
 const moodOptions = [
   { label: "😊 Good", value: "good" },
@@ -13,36 +12,42 @@ const moodOptions = [
   { label: "😞 Depressed", value: "depressed" },
 ];
 
+// Mock data
+const hotlines = [
+  { country: "USA", number: "1-800-273-TALK" },
+  { country: "UK", number: "116 123" },
+  { country: "India", number: "9152987821" },
+];
+
+const copingTips = [
+  "Practice deep breathing or meditation",
+  "Take a walk or get some exercise",
+  "Write your thoughts in a journal",
+  "Listen to calming music",
+];
+
+const selfCareTips = [
+  "Get enough sleep",
+  "Eat a balanced diet",
+  "Stay hydrated",
+  "Spend time doing something you enjoy",
+];
+
 const Support = () => {
   const dispatch = useDispatch();
 
-  const { moodLog, loading: moodLoading } = useSelector((state) => state.mood);
-  const {
-    hotlines = [],
-    copingTips = [],
-    selfCareTips = [],
-    loading: resourcesLoading,
-    error: resourcesError,
-  } = useSelector((state) => state.resources);
-  const {
-    groups = [],
-    loading: groupsLoading,
-    error: groupsError,
-  } = useSelector((state) => state.groups);
-  const {
-    posts = [],
-    loading: postsLoading,
-    error: postsError,
-  } = useSelector((state) => state.posts);
+  const { moodLog, loading: moodLoading } = useSelector((state) => state.moodLog);
+  const { supportResource, loading: resourcesLoading } = useSelector((state) => state.supportResource);
+  const { groups = [], loading: groupsLoading } = useSelector((state) => state.groups);
+  const { supportPost: posts = [], loading: postsLoading } = useSelector((state) => state.posts);
 
   const [mood, setMood] = useState("");
   const [moodSubmitted, setMoodSubmitted] = useState(false);
 
   useEffect(() => {
     dispatch(fetchGroups());
-    dispatch(fetchSupportPosts());
-    dispatch(fetchMoodLogs());
     dispatch(fetchResources());
+    dispatch(logMood());
   }, [dispatch]);
 
   const handleMoodSubmit = useCallback(() => {
@@ -51,7 +56,7 @@ const Support = () => {
       return;
     }
 
-    dispatch(submitMoodLog(mood))
+    dispatch(logMood(mood))
       .unwrap()
       .then(() => {
         toast.success("Mood recorded! You are not alone.");
@@ -74,14 +79,8 @@ const Support = () => {
       </section>
 
       {/* Daily Mood Check-in */}
-      <section
-        aria-labelledby="daily-mood-checkin-heading"
-        className="bg-white rounded-lg shadow p-6 mb-10 max-w-3xl mx-auto"
-      >
-        <h2
-          id="daily-mood-checkin-heading"
-          className="text-2xl font-semibold mb-4 text-blue-800"
-        >
+      <section className="bg-white rounded-lg shadow p-6 mb-10 max-w-3xl mx-auto">
+        <h2 className="text-2xl font-semibold mb-4 text-blue-800">
           Daily Mood Check-in
         </h2>
         {moodLoading ? (
@@ -124,23 +123,13 @@ const Support = () => {
         )}
       </section>
 
-      {/* Support Resources */}
-      <section
-        aria-labelledby="emergency-hotlines-heading"
-        className="mb-10 max-w-4xl mx-auto"
-      >
-        <h2
-          id="emergency-hotlines-heading"
-          className="text-2xl font-semibold mb-4 text-blue-800"
-        >
+      {/* Emergency Hotlines & Resources */}
+      <section className="mb-10 max-w-4xl mx-auto">
+        <h2 className="text-2xl font-semibold mb-4 text-blue-800">
           Emergency Hotlines & Resources
         </h2>
         {resourcesLoading ? (
           <p>Loading resources...</p>
-        ) : resourcesError ? (
-          <p className="text-red-600" role="alert">
-            {resourcesError}
-          </p>
         ) : (
           <ul className="bg-white rounded-lg shadow p-6 space-y-3">
             {hotlines.map(({ country, number }) => (
@@ -159,22 +148,12 @@ const Support = () => {
       </section>
 
       {/* Support Groups */}
-      <section
-        aria-labelledby="support-groups-heading"
-        className="mb-10 max-w-5xl mx-auto"
-      >
-        <h2
-          id="support-groups-heading"
-          className="text-2xl font-semibold mb-4 text-blue-800"
-        >
+      <section className="mb-10 max-w-5xl mx-auto">
+        <h2 className="text-2xl font-semibold mb-4 text-blue-800">
           Support Groups
         </h2>
         {groupsLoading ? (
           <p>Loading groups...</p>
-        ) : groupsError ? (
-          <p className="text-red-600" role="alert">
-            {groupsError}
-          </p>
         ) : groups.length === 0 ? (
           <p>No support groups available yet.</p>
         ) : (
@@ -198,22 +177,12 @@ const Support = () => {
       </section>
 
       {/* Community Posts */}
-      <section
-        aria-labelledby="community-posts-heading"
-        className="mb-10 max-w-5xl mx-auto"
-      >
-        <h2
-          id="community-posts-heading"
-          className="text-2xl font-semibold mb-4 text-blue-800"
-        >
+      <section className="mb-10 max-w-5xl mx-auto">
+        <h2 className="text-2xl font-semibold mb-4 text-blue-800">
           Recent Community Posts
         </h2>
         {postsLoading ? (
           <p>Loading posts...</p>
-        ) : postsError ? (
-          <p className="text-red-600" role="alert">
-            {postsError}
-          </p>
         ) : posts.length === 0 ? (
           <p>No recent posts.</p>
         ) : (
@@ -234,14 +203,8 @@ const Support = () => {
       </section>
 
       {/* Coping Techniques */}
-      <section
-        aria-labelledby="coping-techniques-heading"
-        className="mb-10 max-w-3xl mx-auto"
-      >
-        <h2
-          id="coping-techniques-heading"
-          className="text-2xl font-semibold mb-4 text-blue-800"
-        >
+      <section className="mb-10 max-w-3xl mx-auto">
+        <h2 className="text-2xl font-semibold mb-4 text-blue-800">
           Helpful Coping Techniques
         </h2>
         <ul className="list-disc list-inside bg-white rounded-lg shadow p-6 space-y-2">
@@ -254,14 +217,8 @@ const Support = () => {
       </section>
 
       {/* Self-Care Tips */}
-      <section
-        aria-labelledby="self-care-tips-heading"
-        className="mb-10 max-w-3xl mx-auto"
-      >
-        <h2
-          id="self-care-tips-heading"
-          className="text-2xl font-semibold mb-4 text-blue-800"
-        >
+      <section className="mb-10 max-w-3xl mx-auto">
+        <h2 className="text-2xl font-semibold mb-4 text-blue-800">
           Self-Care Tips
         </h2>
         <ul className="list-disc list-inside bg-white rounded-lg shadow p-6 space-y-2">

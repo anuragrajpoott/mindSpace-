@@ -1,6 +1,6 @@
 import User from "../models/User.js";
-import {uploadImageToCloudinary} from "../utils/fileUpload.js";
-// import { mailSender } from "../utils/mailSender.js"; // Uncomment if using email notifications
+import { uploadImageToCloudinary } from "../utils/fileUpload.js";
+// import { mailSender } from "../utils/mailSender.js"; // Uncomment if email notifications are needed
 
 // ========== GET USER PROFILE BY ID ==========
 export const getUserProfile = async (req, res) => {
@@ -53,12 +53,12 @@ export const updateUserProfile = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Optional email notification
+    // Optional email notification (uncomment if needed)
     /*
     await mailSender(
       user.email,
       "Profile Updated",
-      `<p>Your profile has been updated successfully on Mind Space +.</p>`
+      `<p>Your profile has been updated successfully on Supportify+.</p>`
     );
     */
 
@@ -74,7 +74,7 @@ export const deleteUser = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Delete related data if needed (posts, comments, messages)
+    // Optionally delete user-related data:
     // await Post.deleteMany({ author: userId });
     // await Comment.deleteMany({ user: userId });
     // await Message.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
@@ -106,6 +106,27 @@ export const getAllUsers = async (req, res) => {
     res.status(200).json({ success: true, users });
   } catch (error) {
     console.error("Error fetching users:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+// ========== SEARCH USERS BY USERNAME OR EMAIL ==========
+export const searchUsers = async (req, res) => {
+  try {
+    const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ success: false, message: "Search query is required" });
+    }
+
+    const regex = new RegExp(query, "i"); // case-insensitive
+
+    const users = await User.find({
+      $or: [{ userName: regex }, { email: regex }],
+    }).select("-password");
+
+    res.status(200).json({ success: true, users });
+  } catch (error) {
+    console.error("Error searching users:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

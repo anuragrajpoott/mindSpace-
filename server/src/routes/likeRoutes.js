@@ -1,13 +1,37 @@
 import express from "express";
-import {toggleLike,getLikesForPost} from "../controllers/likeController.js";
-import {authenticateUser} from "../middlewares/authMiddleware.js";
+import {
+  // likePost,
+  // unlikePost,
+  // likeComment,
+  // unlikeComment,
+  // getLikesByUser,
+  toggleLike,
+  isLikedByUser,
+  getLikesForTarget
+} from "../controllers/likeController.js";
+import { authenticateUser } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-// Toggle like/unlike on a post (authenticated)
-router.post("/:postId/toggle", authenticateUser, toggleLike);
+// Like a post (authenticated)
+// router.post("/post/:postId/like", authenticateUser, likePost);
 
-// Optionally, get likes for a post (public)
-router.get("/:postId", getLikesForPost);
+// Unlike a post (authenticated)
+// router.post("/post/:postId/unlike", authenticateUser, unlikePost);
+
+// // Like a comment (authenticated)
+// router.post("/comment/:commentId/like", authenticateUser, likeComment);
+
+// Unlike a comment (authenticated)
+// router.post("/comment/:commentId/unlike", authenticateUser, unlikeComment);
+
+// Get all likes by a user (authenticated)
+// router.get("/user/:userId", authenticateUser, getLikesByUser);
+
+router.post("/post/:postId",authenticateUser,toggleLike)
+
+router.get("/user/:userId",authenticateUser,isLikedByUser)
+
+router.get("/post/:postId",authenticateUser,getLikesForTarget)
 
 export default router;

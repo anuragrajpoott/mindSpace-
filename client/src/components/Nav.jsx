@@ -11,10 +11,11 @@ import {
   FcMindMap,
 } from "react-icons/fc";
 import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../redux/Slices/authSlice"; // adjust path as needed
+import {logout} from "../services/operations/authOperations"
+
 
 const Nav = () => {
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.user);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();

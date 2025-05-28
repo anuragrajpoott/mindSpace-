@@ -1,77 +1,58 @@
+import Like from "../models/Like.js";
 import Post from "../models/Post.js";
 import Comment from "../models/Comment.js";
-import User from "../models/User.js";
 
-// Toggle Like on a Post or Comment
+// ========== TOGGLE LIKE (POST/COMMENT) ==========
 export const toggleLike = async (req, res) => {
   try {
-    const { targetId, type } = req.params; // 'post' or 'comment'
+    const { targetId, targetType } = req.body; // targetType: "Post" | "Comment"
     const userId = req.user.id;
 
-    if (!["post", "comment"].includes(type)) {
-      return res.status(400).json({ success: false, message: "Invalid like target type" });
+    if (!["Post", "Comment"].includes(targetType)) {
+      return res.status(400).json({ success: false, message: "Invalid target type." });
     }
 
-    const Model = type === "post" ? Post : Comment;
-    const item = await Model.findById(targetId);
+    const existingLike = await Like.findOne({ user: userId, targetId, targetType });
 
-    if (!item) {
-      return res.status(404).json({ success: false, message: `${type} not found` });
+    if (existingLike) {
+      await existingLike.deleteOne();
+      return res.status(200).json({ success: true, message: `${targetType} unliked.` });
     }
 
-    const alreadyLiked = item.likes.some(id => id.toString() === userId);
+    const newLike = await Like.create({ user: userId, targetId, targetType });
 
-    if (alreadyLiked) {
-      item.likes.pull(userId);
-    } else {
-      item.likes.push(userId);
-    }
-
-    await item.save();
-
-    return res.status(200).json({
-      success: true,
-      message: alreadyLiked ? `${type} unliked` : `${type} liked`,
-      likesCount: item.likes.length,
-    });
+    return res.status(201).json({ success: true, message: `${targetType} liked.`, like: newLike });
   } catch (error) {
     console.error("Toggle Like Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "An error occurred while toggling like",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Failed to toggle like." });
   }
 };
 
-// Get all likes for a post (with user info)
-export const getLikesForPost = async (req, res) => {
+// ========== GET LIKES FOR A TARGET ==========
+export const getLikesForTarget = async (req, res) => {
   try {
-    const postId = req.params.postId;
-    const post = await Post.findById(postId).populate("likes", "userName avatar");
-    if (!post) return res.status(404).json({ success: false, message: "Post not found" });
+    const { targetId } = req.params;
 
-    return res.status(200).json({ success: true, likes: post.likes });
+    const likes = await Like.find({ targetId }).populate("user", "userName profileImage");
+
+    res.status(200).json({ success: true, likes });
   } catch (error) {
     console.error("Get Likes Error:", error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(500).json({ success: false, message: "Failed to fetch likes." });
   }
 };
 
-// Get posts liked by a user
-export const getLikedPostsByUser = async (req, res) => {
+// ========== CHECK IF USER LIKED A TARGET ==========
+export const isLikedByUser = async (req, res) => {
   try {
-    const userId = req.params.userId;
-    const user = await User.findById(userId).populate({
-      path: "likes",
-      select: "_id content createdAt",
-      populate: { path: "createdBy", select: "userName avatar" },
-    });
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    const userId = req.user.id;
+    const { targetId } = req.params;
 
-    return res.status(200).json({ success: true, likedPosts: user.likes });
+    const like = await Like.findOne({ user: userId, targetId });
+
+    res.status(200).json({ success: true, liked: !!like });
   } catch (error) {
-    console.error("Get User Likes Error:", error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    console.error("Check Like Error:", error);
+    res.status(500).json({ success: false, message: "Failed to check like." });
   }
 };

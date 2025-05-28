@@ -1,113 +1,103 @@
 import Message from "../models/Message.js";
 import User from "../models/User.js";
-import { v2 as cloudinary } from "cloudinary";
-import { mailSender } from "../utils/mailSender.js";
 
-// Send a new message, optionally with media upload
+// ========== SEND MESSAGE ==========
 export const sendMessage = async (req, res) => {
   try {
+    const { receiverId, text } = req.body;
     const senderId = req.user.id;
-    const { receiverId, content } = req.body;
 
-    if (!receiverId || (!content && !req.files?.media)) {
-      return res.status(400).json({ success: false, message: "Receiver and content or media required" });
+    if (!receiverId || !text) {
+      return res.status(400).json({ success: false, message: "Receiver ID and message text are required." });
     }
 
-    let mediaUrl = null;
-    if (req.files?.media) {
-      const file = req.files.media;
-      const uploadResult = await cloudinary.uploader.upload(file.tempFilePath, {
-        folder: "mindSpace/Messages",
-        resource_type: "auto",
-        quality: "auto",
-      });
-      mediaUrl = uploadResult.secure_url;
-    }
-
-    const message = await Message.create({
+    const newMessage = await Message.create({
       sender: senderId,
       receiver: receiverId,
-      content,
-      media: mediaUrl,
+      text,
     });
 
-    const receiver = await User.findById(receiverId);
-    if (receiver?.email) {
-      await mailSender(
-        receiver.email,
-        "New Message Received",
-        `<p>You have received a new message on Mind Space +.</p>
-         <p>Message preview: ${content ? content.substring(0, 100) : "[Media message]"}</p>`
-      );
-    }
-
-    res.status(201).json({ success: true, message: "Message sent", data: message });
+    res.status(201).json({ success: true, message: "Message sent successfully", messageData: newMessage });
   } catch (error) {
     console.error("Send Message Error:", error);
-    res.status(500).json({ success: false, message: "Failed to send message", error: error.message });
+    res.status(500).json({ success: false, message: "Failed to send message." });
   }
 };
 
-// Get all messages between authenticated user and another user
-export const getMessagesBetweenUsers = async (req, res) => {
+// ========== GET MESSAGES BETWEEN USERS ==========
+export const getMessagesWithUser = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { otherUserId } = req.params;
+    const otherUserId = req.params.userId;
 
     const messages = await Message.find({
       $or: [
         { sender: userId, receiver: otherUserId },
         { sender: otherUserId, receiver: userId },
       ],
-    }).sort({ createdAt: 1 }); // oldest first
+    }).sort({ createdAt: 1 });
 
     res.status(200).json({ success: true, messages });
   } catch (error) {
-    console.error("Fetch Messages Error:", error);
-    res.status(500).json({ success: false, message: "Error fetching messages", error: error.message });
+    console.error("Get Messages Error:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch messages." });
   }
 };
 
-// Mark a specific message as read
-export const markAsRead = async (req, res) => {
+// ========== GET RECENT CONVERSATIONS ==========
+export const getRecentConversations = async (req, res) => {
   try {
-    const { messageId } = req.params;
+    const userId = req.user.id;
 
-    const message = await Message.findById(messageId);
-    if (!message) {
-      return res.status(404).json({ success: false, message: "Message not found" });
-    }
+    const messages = await Message.find({
+      $or: [{ sender: userId }, { receiver: userId }],
+    })
+      .sort({ createdAt: -1 })
+      .populate("sender", "userName profileImage")
+      .populate("receiver", "userName profileImage");
 
-    message.read = true;
-    await message.save();
+    const uniqueConversations = new Map();
 
-    res.status(200).json({ success: true, message: "Message marked as read" });
+    messages.forEach((msg) => {
+      const key =
+        msg.sender._id.toString() === userId
+          ? msg.receiver._id.toString()
+          : msg.sender._id.toString();
+      if (!uniqueConversations.has(key)) {
+        uniqueConversations.set(key, msg);
+      }
+    });
+
+    const recentConversations = Array.from(uniqueConversations.values());
+
+    res.status(200).json({ success: true, conversations: recentConversations });
   } catch (error) {
-    console.error("Mark as Read Error:", error);
-    res.status(500).json({ success: false, message: "Error marking as read", error: error.message });
+    console.error("Get Conversations Error:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch conversations." });
   }
 };
 
-// Delete a message if the user is sender or receiver
+// ========== DELETE A MESSAGE ==========
 export const deleteMessage = async (req, res) => {
   try {
-    const { messageId } = req.params;
+    const messageId = req.params.id;
     const userId = req.user.id;
 
     const message = await Message.findById(messageId);
+
     if (!message) {
-      return res.status(404).json({ success: false, message: "Message not found" });
+      return res.status(404).json({ success: false, message: "Message not found." });
     }
 
-    if (message.sender.toString() !== userId && message.receiver.toString() !== userId) {
-      return res.status(403).json({ success: false, message: "Unauthorized" });
+    if (message.sender.toString() !== userId) {
+      return res.status(403).json({ success: false, message: "Unauthorized to delete this message." });
     }
 
-    await Message.findByIdAndDelete(messageId);
+    await message.deleteOne();
 
-    res.status(200).json({ success: true, message: "Message deleted successfully" });
+    res.status(200).json({ success: true, message: "Message deleted successfully." });
   } catch (error) {
     console.error("Delete Message Error:", error);
-    res.status(500).json({ success: false, message: "Failed to delete message", error: error.message });
+    res.status(500).json({ success: false, message: "Failed to delete message." });
   }
 };

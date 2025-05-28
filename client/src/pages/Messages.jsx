@@ -5,10 +5,12 @@ import toast from "react-hot-toast";
 
 const Messages = () => {
   const dispatch = useDispatch();
-  const { chats, messages, loading, error } = useSelector((state) => state.messages);
+  const {  messages, loading, } = useSelector((state) => state.messages);
   const [activeChatId, setActiveChatId] = useState(null);
   const [message, setMessage] = useState("");
   const messagesEndRef = useRef(null);
+
+  const chats = []
 
   // Fetch chats on mount
   // useEffect(() => {
@@ -39,7 +41,7 @@ const Messages = () => {
       await dispatch(sendMessage(activeChatId, message)).unwrap();
       setMessage("");
       // Optionally fetch messages again or rely on real-time update
-      dispatch(fetchMessages(activeChatId));
+      dispatch(getMessages(activeChatId));
     } catch {
       toast.error("Failed to send message");
     }
@@ -57,7 +59,7 @@ const Messages = () => {
         <h2 className="text-xl font-bold mb-4 text-blue-800">Inbox</h2>
 
         {loading && !activeChatId && <p>Loading chats...</p>}
-        {error && <p className="text-red-500">{error}</p>}
+        {/* {error && <p className="text-red-500">{error}</p>} */}
         {!loading && chats?.length === 0 && <p>No chats available.</p>}
 
         {chats?.map((chat) => (
