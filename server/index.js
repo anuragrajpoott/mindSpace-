@@ -43,7 +43,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin:  "https://mind-space-plus.vercel.app",
+    origin:  "https://mind-space-plus.vercel.app/" || "*",
     credentials: true,
   })
 );
