@@ -43,8 +43,8 @@ export const login = (formData, navigate) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
     const res = await axiosConnector("POST", LOGIN, formData);
-    const { user } = res.data;
-    dispatch(setToken(user.token));
+    const { user ,token} = res.data;
+    dispatch(setToken(token));
     dispatch(setUser(user));
     toast.success("Logged in successfully!");
     navigate("/feed");

@@ -10,12 +10,12 @@ import {
 } from "../../redux/Slices/postSlice";
 import toast from "react-hot-toast";
 
-const { POSTS } = endPoints; // POSTS = '/api/posts'
+const { GET_POSTS } = endPoints; // POSTS = '/api/posts'
 
 export const fetchPosts = () => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("GET", POSTS);
+    const res = await axiosConnector("GET", GET_POSTS );
     dispatch(setPosts(res.data.posts));
   } catch (error) {
     toast.error(error.response?.data?.message || "Failed to fetch posts");

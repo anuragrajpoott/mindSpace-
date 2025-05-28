@@ -1,29 +1,29 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getMessages, sendMessage } from "../services/operations/messageOperations";
-import { fetchChats } from "../services/operations/chatOperations"; // hypothetical fetchChats thunk
+import { fetchRecentChats, sendMessage } from "../services/operations/messageOperations";
+import { setMessage } from "../redux/Slices/messageSlice";
+import { fetchMessagesWithUser } from "../services/operations/messageOperations"; // hypothetical fetchMessagesWithUser thunk
 import toast from "react-hot-toast";
 
 const Messages = () => {
   const dispatch = useDispatch();
 
   // Select chats state and loading flag
-  const { chats, loading: chatsLoading } = useSelector((state) => state.chats);
+  const { recentChats, loading: chatsLoading } = useSelector((state) => state.messages);
 
   // Select messages state and loading flag
-  const { messages, loading: messagesLoading } = useSelector((state) => state.messages);
+  const { message, loading: messagesLoading } = useSelector((state) => state.messages);
 
   // Active chat ID and input message text states
   const [activeChatId, setActiveChatId] = useState(null);
-  const [message, setMessage] = useState("");
 
   // Ref to scroll to bottom of messages
   const messagesEndRef = useRef(null);
 
   // Fetch chats on mount
   useEffect(() => {
-    dispatch(fetchChats())
-      .unwrap()
+    dispatch(fetchMessagesWithUser())
+      // .unwrap()
       .then((res) => {
         if (res.length > 0) setActiveChatId(res[0]._id);
       })
@@ -33,8 +33,8 @@ const Messages = () => {
   // Fetch messages when activeChatId changes
   useEffect(() => {
     if (activeChatId) {
-      dispatch(getMessages({ chatId: activeChatId }))
-        .unwrap()
+      dispatch(fetchRecentChats({ chatId: activeChatId }))
+        // .unwrap()
         .catch(() => toast.error("Failed to load messages"));
     }
   }, [activeChatId, dispatch]);
@@ -42,7 +42,7 @@ const Messages = () => {
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [message]);
 
   // Handler for sending message
   const handleSendMessage = async () => {
@@ -52,14 +52,14 @@ const Messages = () => {
       await dispatch(sendMessage({ chatId: activeChatId, text: message })).unwrap();
       setMessage("");
       // Ideally, your sendMessage thunk should update messages in state,
-      // so no need to dispatch getMessages here again
+      // so no need to dispatch fetchRecentChats here again
     } catch {
       toast.error("Failed to send message");
     }
   };
 
   // Get active chat object for display
-  const activeChat = chats?.find((chat) => chat._id === activeChatId);
+  const activeChat = recentChats?.find((chat) => chat._id === activeChatId);
 
   return (
     <div className="flex min-h-screen bg-blue-50">
@@ -71,9 +71,9 @@ const Messages = () => {
         <h2 className="text-xl font-bold mb-4 text-blue-800">Inbox</h2>
 
         {chatsLoading && <p>Loading chats...</p>}
-        {!chatsLoading && chats?.length === 0 && <p>No chats available.</p>}
+        {!chatsLoading && recentChats?.length === 0 && <p>No chats available.</p>}
 
-        {chats?.map((chat) => (
+        {recentChats?.map((chat) => (
           <div
             key={chat._id}
             role="button"
@@ -89,7 +89,7 @@ const Messages = () => {
           >
             <p className="font-semibold truncate">{chat.name}</p>
             <p className="text-sm text-gray-500 truncate">
-              {chat.lastMessage || "No messages yet."}
+              {recentChats.lastMessage || "No messages yet."}
             </p>
           </div>
         ))}
@@ -114,7 +114,7 @@ const Messages = () => {
           )}
           {!activeChatId && <p className="text-gray-500">Please select a chat to start messaging.</p>}
 
-          {messages.map((msg, index) => (
+          {message?.map((msg, index) => (
             <div
               key={msg._id || index}
               className={`flex ${msg.from === "Me" ? "justify-end" : "justify-start"}`}

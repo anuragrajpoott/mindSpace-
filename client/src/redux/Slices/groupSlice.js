@@ -28,7 +28,7 @@ const groupsSlice = createSlice({
     addGroup: (state, action) => {
       state.groups.push(action.payload);
     },
-    updateGroup: (state, action) => {
+    updateSupportGroup: (state, action) => {
       const index = state.groups.findIndex(g => g._id === action.payload._id);
       if (index !== -1) {
         state.groups[index] = action.payload;
@@ -73,7 +73,7 @@ export const {
   setCurrentGroup,
   setMembers,
   addGroup,
-  updateGroup,
+  updateSupportGroup,
   removeGroup,
   setError,
   setMessage,

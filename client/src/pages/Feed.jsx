@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { FcLike, FcBusinessman } from "react-icons/fc";
 import CreatePostModal from "../components/CreatePostModal";
-import { setPosts } from "../redux/Slices/postSlice";
+import { fetchPosts } from "../services/operations/postOperations";
 import { toggleLike } from "../services/operations/likeOperations";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,7 +27,7 @@ const Feed = () => {
 
   // Load posts on mount
   useEffect(() => {
-    dispatch(setPosts());
+    dispatch(fetchPosts());
   }, [dispatch]);
 
   // Handle creating a new post
@@ -105,7 +105,7 @@ const Feed = () => {
             Loading posts...
           </p>
         )}
-        {!loading && sortedPosts.length === 0 && (
+        {!loading && sortedPosts?.length === 0 && (
           <p role="alert" className="text-center text-gray-500 mt-4">
             No posts found.
           </p>
@@ -113,7 +113,7 @@ const Feed = () => {
 
         {/* Post List */}
         <AnimatePresence>
-          {sortedPosts.map((post) => {
+          {sortedPosts?.map((post) => {
             const isLikedByUser = post.likes?.includes(user?._id);
             return (
               <motion.article

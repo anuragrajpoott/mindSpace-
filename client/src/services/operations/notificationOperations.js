@@ -3,7 +3,7 @@ import {
   setLoading,
   setError,
   setNotifications,
-  markRead,
+  markNotificationsRead,
   markAllRead,
   deleteNotification,
   addNotification,
@@ -40,7 +40,7 @@ export const fetchNotifications = () => async (dispatch) => {
 export const markNotificationsAsRead = (ids) => async (dispatch) => {
   try {
     const res = await axiosConnector("PUT", `${baseUrl}/read`, { ids });
-    dispatch(markRead(ids));
+    dispatch(markNotificationsRead(ids));
   } catch (error) {
     toast.error("Failed to mark as read");
     dispatch(setError(error.message));

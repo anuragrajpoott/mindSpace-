@@ -73,13 +73,13 @@ export const endPoints = {
   // ========================
   // Support Resources
   // ========================
-  CREATE_SUPPORT_RESOURCE: `/support-resource`,
-  GET_SUPPORT_RESOURCES: `/support-resource`,
-  GET_SUPPORT_RESOURCE_BY_ID: (id) => `/support-resource/${id}`,
-  GET_SUPPORT_RESOURCES_BY_CATEGORY: (category) => `/support-resource/category/${category}`,
-  SEARCH_SUPPORT_RESOURCES: (keyword) => `/support-resource/search/${keyword}`,
-  UPDATE_SUPPORT_RESOURCE: (id) => `/support-resource/${id}`,
-  DELETE_SUPPORT_RESOURCE: (id) => `/support-resource/${id}`,
+  CREATE_SUPPORT_RESOURCE: `/support-resources`,
+  GET_SUPPORT_RESOURCES: `/support-resources`,
+  GET_SUPPORT_RESOURCE_BY_ID: (id) => `/support-resources/${id}`,
+  GET_SUPPORT_RESOURCES_BY_CATEGORY: (category) => `/support-resources/category/${category}`,
+  SEARCH_SUPPORT_RESOURCES: (keyword) => `/support-resources/search/${keyword}`,
+  UPDATE_SUPPORT_RESOURCE: (id) => `/support-resources/${id}`,
+  DELETE_SUPPORT_RESOURCE: (id) => `/support-resources/${id}`,
 
   // ========================
   // Support Posts

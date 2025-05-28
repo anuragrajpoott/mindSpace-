@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
-import { logMood } from "../services/operations/moodLogOperations";
+import { createMoodLog } from "../services/operations/moodLogOperations";
 
 const moodOptions = [
   { label: "😊 Good", value: "good" },
@@ -23,7 +23,7 @@ const MoodLog = () => {
       return;
     }
 
-    dispatch(logMood(mood))
+    dispatch(createMoodLog(mood))
       .unwrap()
       .then(() => {
         toast.success("Mood recorded! You are not alone.");

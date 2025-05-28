@@ -5,7 +5,7 @@ const initialState = {
   recentChats: [],    // Array of recent chat summaries
   loading: false,
   error: null,
-  message: null,
+  message: [],
 };
 
 const messagesSlice = createSlice({

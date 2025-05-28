@@ -10,21 +10,21 @@ const JWT_EXPIRES_IN = '7d';
 // ========== REGISTER USER ==========
 export const registerUser = async (req, res) => {
   try {
-    const { firstName, lastName, email, password } = req.body;
+    const { firstName, lastName, userName, password } = req.body;
 
-    if (!email || !password || !firstName || !lastName) {
+    if (!userName || !password || !firstName || !lastName) {
       return res.status(400).json({ success: false, message: 'All fields are required' });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ success: false, message: 'Email already in use' });
+    const existingUser = await User.findOne({ userName });
+    if (existingUser) return res.status(400).json({ success: false, message: 'username already in use' });
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const newUser = await User.create({
       firstName,
       lastName,
-      email,
+      userName,
       password: hashedPassword,
       // other default fields...
     });
@@ -42,12 +42,12 @@ export const registerUser = async (req, res) => {
 // ========== LOGIN USER ==========
 export const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { userName, password } = req.body;
 
-    if (!email || !password)
-      return res.status(400).json({ success: false, message: 'Email and password required' });
+    if (!userName || !password)
+      return res.status(400).json({ success: false, message: 'username and password required' });
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ userName });
     if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -55,17 +55,12 @@ export const loginUser = async (req, res) => {
 
     const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
+    user.token = token
+
     res.status(200).json({
       success: true,
       token,
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        avatar: user.avatar,
-        // any other public user info
-      },
+      user,
     });
   } catch (error) {
     console.error('Login User Error:', error);

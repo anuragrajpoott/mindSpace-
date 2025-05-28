@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getNotifications } from "../services/operations/notificationOperations";
+import { fetchNotifications } from "../services/operations/notificationOperations";
 import toast from "react-hot-toast";
 import { FcLike, FcComments, FcPortraitMode, FcApproval } from "react-icons/fc";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,8 +25,8 @@ const Notifications = () => {
   const { notifications = [], loading } = useSelector((state) => state.notifications);
 
   useEffect(() => {
-    dispatch(getNotifications())
-      .unwrap()
+    dispatch(fetchNotifications())
+      // .unwrap()
       .catch(() => {
         toast.error("Failed to load notifications");
       });

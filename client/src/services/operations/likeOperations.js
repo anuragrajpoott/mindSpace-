@@ -2,8 +2,8 @@ import { axiosConnector } from "../../services/axios";
 import { endPoints } from "../../services/apis";
 import {
   setLoading,
-  setLikes,
-  toggleLikeState,
+  setLikesByPost,
+  toggleUserLike,
   setError,
 } from "../../redux/Slices/likeSlice";
 import toast from "react-hot-toast";
@@ -15,7 +15,7 @@ export const toggleLike = (postId) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
     const res = await axiosConnector("POST", `${LIKES}/post/${postId}`);
-    dispatch(toggleLikeState(res.data.like));
+    dispatch(toggleUserLike(res.data.like));
     toast.success(res.data.message || "Like toggled");
   } catch (error) {
     toast.error(error.response?.data?.message || "Failed to toggle like");
@@ -30,7 +30,7 @@ export const fetchUserLikes = (userId) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
     const res = await axiosConnector("GET", `${LIKES}/user/${userId}`);
-    dispatch(setLikes(res.data.likes));
+    dispatch(setLikesByPost(res.data.likes));
   } catch (error) {
     toast.error(error.response?.data?.message || "Failed to fetch likes");
     dispatch(setError(error.response?.data?.message || error.message));
@@ -44,7 +44,7 @@ export const fetchLikesByPost = (postId) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
     const res = await axiosConnector("GET", `${LIKES}/post/${postId}`);
-    dispatch(setLikes(res.data.likes));
+    dispatch(setLikesByPost(res.data.likes));
   } catch (error) {
     toast.error(error.response?.data?.message || "Failed to fetch likes for post");
     dispatch(setError(error.response?.data?.message || error.message));

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { updateUserSettings } from "../services/operations/userOperations"; // Your thunk action
+// import { updateUserSettings } from "../services/operations/userOperations"; // Your thunk action
 import logo from "../assets/images/logo.png";
 import { FcCloseUpMode } from "react-icons/fc";
 
@@ -30,7 +30,7 @@ const Settings = () => {
       return;
     }
 
-    dispatch(updateUserSettings(formData, navigate));
+    // dispatch(updateUserSettings(formData, navigate));
   };
 
   return (

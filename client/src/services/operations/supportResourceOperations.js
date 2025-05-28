@@ -3,19 +3,22 @@ import {
   setLoading,
   setResources,
   addResource,
-  updateResourceState,
-  deleteResourceState,
+  updateSupportResource,
+  deleteSupportResource,
   setError,
 } from "../../redux/Slices/supportResourceSlice";
 import toast from "react-hot-toast";
 
-const baseUrl = "/resources";
+const baseUrl = "/support-resource";
+import { endPoints } from "../apis";
+
+
 
 // Create a support resource (POST /)
 export const createResource = (resourceData) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("POST", baseUrl, resourceData);
+    const res = await axiosConnector("POST", endPoints.CREATE_SUPPORT_RESOURCE, resourceData);
     dispatch(addResource(res.data.resource));
     toast.success("Resource created");
   } catch (error) {
@@ -30,7 +33,7 @@ export const createResource = (resourceData) => async (dispatch) => {
 export const fetchResources = () => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("GET", baseUrl);
+    const res = await axiosConnector("GET", endPoints.GET_SUPPORT_RESOURCES);
     dispatch(setResources(res.data.resources));
   } catch (error) {
     toast.error("Failed to fetch resources");
@@ -44,7 +47,7 @@ export const fetchResources = () => async (dispatch) => {
 export const fetchResourceById = (id) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("GET", `${baseUrl}/${id}`);
+    const res = await axiosConnector("GET", `${endPoints.GET_SUPPORT_RESOURCE_BY_ID}/${id}`);
     dispatch(addResource(res.data.resource)); // optional usage
   } catch (error) {
     toast.error("Failed to fetch resource");
@@ -58,7 +61,7 @@ export const fetchResourceById = (id) => async (dispatch) => {
 export const fetchResourcesByCategory = (category) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("GET", `${baseUrl}/category/${category}`);
+    const res = await axiosConnector("GET", `${endPoints.GET_SUPPORT_RESOURCES_BY_CATEGORY}/category/${category}`);
     dispatch(setResources(res.data.resources));
   } catch (error) {
     toast.error("Failed to fetch by category");
@@ -72,7 +75,7 @@ export const fetchResourcesByCategory = (category) => async (dispatch) => {
 export const searchResources = (keyword) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("GET", `${baseUrl}/search/${keyword}`);
+    const res = await axiosConnector("GET", `${endPoints.SEARCH_SUPPORT_RESOURCES}/search/${keyword}`);
     dispatch(setResources(res.data.resources));
   } catch (error) {
     toast.error("Search failed");
@@ -86,8 +89,8 @@ export const searchResources = (keyword) => async (dispatch) => {
 export const updateResource = (id, updatedData) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("PUT", `${baseUrl}/${id}`, updatedData);
-    dispatch(updateResourceState(res.data.updatedResource));
+    const res = await axiosConnector("PUT", `${endPoints.UPDATE_SUPPORT_RESOURCE}/${id}`, updatedData);
+    dispatch(updateResource(res.data.updatedResource));
     toast.success("Resource updated");
   } catch (error) {
     toast.error("Update failed");
@@ -101,8 +104,8 @@ export const updateResource = (id, updatedData) => async (dispatch) => {
 export const deleteResource = (id) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    await axiosConnector("DELETE", `${baseUrl}/${id}`);
-    dispatch(deleteResourceState(id));
+    await axiosConnector("DELETE", `${endPoints.DELETE_SUPPORT_RESOURCE}/${id}`);
+    dispatch(deleteResource(id));
     toast.success("Resource deleted");
   } catch (error) {
     toast.error("Delete failed");

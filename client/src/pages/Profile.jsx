@@ -2,10 +2,11 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { FcPortraitMode, FcViewDetails, FcEditImage } from "react-icons/fc";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  fetchProfile,
-  updateProfile,
-  updatePassword,
+  getUserProfileById,
+  updateOwnProfile,
+  
 } from "../services/operations/userOperations";
+import {updatePassword} from "../services/operations/authOperations"
 import toast from "react-hot-toast";
 import UpdatePasswordModal from "../components/UpdatePasswordModal";
 
@@ -31,7 +32,7 @@ const Profile = () => {
 
     const loadProfile = async () => {
       try {
-        const profileData = await dispatch(fetchProfile(user._id)).unwrap();
+        const profileData = await dispatch(getUserProfileById(user._id)).unwrap();
         setProfile(profileData);
         setBio(profileData.bio || "");
       } catch {
@@ -50,11 +51,11 @@ const Profile = () => {
     }
     try {
       setUpdatingBio(true);
-      await dispatch(updateProfile({ bio })).unwrap();
+      await dispatch(updateOwnProfile({ bio })).unwrap();
       toast.success("Bio updated!");
       setEdit(false);
 
-      const updatedProfile = await dispatch(fetchProfile(user._id)).unwrap();
+      const updatedProfile = await dispatch(getUserProfileById(user._id)).unwrap();
       setProfile(updatedProfile);
       setBio(updatedProfile.bio || "");
     } catch {
@@ -81,11 +82,11 @@ const Profile = () => {
         const formData = new FormData();
         formData.append("profileImage", file);
 
-        await dispatch(updateProfile(formData)).unwrap();
+        await dispatch(updateOwnProfile(formData)).unwrap();
 
         toast.success("Profile image updated!");
 
-        const updatedProfile = await dispatch(fetchProfile(user._id)).unwrap();
+        const updatedProfile = await dispatch(getUserProfileById(user._id)).unwrap();
         setProfile(updatedProfile);
       } catch {
         toast.error("Failed to upload image");

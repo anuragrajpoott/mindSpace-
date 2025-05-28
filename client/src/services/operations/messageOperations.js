@@ -1,9 +1,9 @@
 import { axiosConnector } from "../../services/axios";
 import {
   setLoading,
-  setMessages,
+  setMessage,
   addMessage,
-  removeMessageState,
+  resetMessagesState,
   setError,
 } from "../../redux/Slices/messageSlice";
 import toast from "react-hot-toast";
@@ -30,7 +30,7 @@ export const fetchMessagesWithUser = (otherUserId) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
     const res = await axiosConnector("GET", `${baseUrl}/${otherUserId}`);
-    dispatch(setMessages(res.data.messages));
+    dispatch(setMessage(res.data.messages));
   } catch (error) {
     toast.error(error.response?.data?.message || "Failed to fetch messages");
     dispatch(setError(error.response?.data?.message || error.message));
@@ -44,7 +44,7 @@ export const deleteMessage = (messageId) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
     await axiosConnector("DELETE", `${baseUrl}/${messageId}`);
-    dispatch(removeMessageState(messageId));
+    dispatch(resetMessagesState(messageId));
     toast.success("Message deleted");
   } catch (error) {
     toast.error(error.response?.data?.message || "Failed to delete message");

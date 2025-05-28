@@ -23,14 +23,14 @@ const supportResourceSlice = createSlice({
     addResource: (state, action) => {
       state.resources.unshift(action.payload);
     },
-    updateResource: (state, action) => {
+    updateSupportResource: (state, action) => {
       const updatedResource = action.payload;
       const index = state.resources.findIndex((res) => res._id === updatedResource._id);
       if (index !== -1) {
         state.resources[index] = updatedResource;
       }
     },
-    deleteResource: (state, action) => {
+    deleteSupportResource: (state, action) => {
       state.resources = state.resources.filter((res) => res._id !== action.payload);
     },
     setError: (state, action) => {
@@ -58,8 +58,8 @@ export const {
   setLoading,
   setResources,
   addResource,
-  updateResource,
-  deleteResource,
+  updateSupportResource,
+  deleteSupportResource,
   setError,
   setMessage,
   clearError,

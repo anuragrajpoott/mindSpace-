@@ -21,14 +21,14 @@ const moodSlice = createSlice({
     addMoodLog: (state, action) => {
       state.moodLogs.push(action.payload);
     },
-    updateMoodLog: (state, action) => {
+    updateMoodLogState: (state, action) => {
       const updatedLog = action.payload;
       const index = state.moodLogs.findIndex((log) => log._id === updatedLog._id);
       if (index !== -1) {
         state.moodLogs[index] = updatedLog;
       }
     },
-    deleteMoodLog: (state, action) => {
+    deleteMoodLogState: (state, action) => {
       state.moodLogs = state.moodLogs.filter((log) => log._id !== action.payload);
     },
     setMoodStats: (state, action) => {
@@ -60,8 +60,8 @@ export const {
   setLoading,
   setMoodLogs,
   addMoodLog,
-  updateMoodLog,
-  deleteMoodLog,
+  updateMoodLogState,
+  deleteMoodLogState,
   setMoodStats,
   setError,
   setMessage,

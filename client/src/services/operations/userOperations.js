@@ -2,8 +2,8 @@ import { axiosConnector } from "../../services/axios";
 import {
   setLoading,
   setError,
-  setUsers,
-  setCurrentUserProfile,
+  setAllUsers,
+  setProfile,
   updateCurrentUserProfile,
   removeAccount,
 } from "../../redux/Slices/userSlice";
@@ -46,7 +46,7 @@ export const getUserProfileById = (id) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
     const res = await axiosConnector("GET", `${baseUrl}/${id}`);
-    dispatch(setCurrentUserProfile(res.data.user));
+    dispatch(setProfile(res.data.user));
   } catch (error) {
     toast.error("Failed to load profile");
     dispatch(setError(error.message));
@@ -60,7 +60,7 @@ export const fetchAllUsers = () => async (dispatch) => {
   dispatch(setLoading(true));
   try {
     const res = await axiosConnector("GET", baseUrl);
-    dispatch(setUsers(res.data.users));
+    dispatch(setAllUsers(res.data.users));
   } catch (error) {
     toast.error("Failed to fetch users");
     dispatch(setError(error.message));

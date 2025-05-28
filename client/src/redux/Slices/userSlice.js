@@ -40,6 +40,12 @@ const userSlice = createSlice({
       state.error = null;
       state.message = null;
     },
+    updateCurrentUserProfile(state,action){
+      state.profile =action.payload
+    },
+    removeAccount(state,action){
+      state.profile = null
+    }
   },
 });
 
@@ -52,6 +58,8 @@ export const {
   clearError,
   clearMessage,
   resetUserState,
+  removeAccount,
+  updateCurrentUserProfile
 } = userSlice.actions;
 
 export default userSlice.reducer;

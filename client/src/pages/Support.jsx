@@ -4,10 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { fetchGroups } from "../services/operations/groupOperations";
 import { fetchResources } from "../services/operations/supportResourceOperations";
 
-import MoodLog from "./MoodLog";
-import SupportResource from "./SupportResource";
-import Groups from "./Groups";
-import SupportPosts from "./SupportPosts";
+import MoodLog from "../components/MoodLog";
+import SupportResource from "../components/SupportResource";
+import Groups from "../components/SupportGroup";
+import SupportPosts from "../components/SupportPost";
 
 const copingTips = [
   "Practice deep breathing or meditation",
@@ -51,11 +51,11 @@ const Support = () => {
     setResourcesError(null);
 
     dispatch(fetchGroups())
-      .unwrap()
+      // .unwrap()
       .catch(() => setGroupsError("Failed to load support groups"));
 
     dispatch(fetchResources())
-      .unwrap()
+      // .unwrap()
       .catch(() => setResourcesError("Failed to load support resources"));
   }, [dispatch]);
 

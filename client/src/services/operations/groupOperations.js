@@ -3,8 +3,8 @@ import {
   setLoading,
   setGroups,
   addGroup,
-  updateGroupState,
-  removeGroupState,
+  updateSupportGroup,
+  removeGroup,
   setError,
 } from "../../redux/Slices/groupSlice";
 import toast from "react-hot-toast";
@@ -46,7 +46,7 @@ export const updateGroup = (groupId, updateData) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
     const res = await axiosConnector("PUT", `${baseUrl}/${groupId}`, updateData);
-    dispatch(updateGroupState(res.data.group));
+    dispatch(updateGroup(res.data.group));
     toast.success("Group updated successfully!");
   } catch (error) {
     toast.error(error.response?.data?.message || "Failed to update group");
@@ -61,7 +61,7 @@ export const deleteGroup = (groupId) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
     await axiosConnector("DELETE", `${baseUrl}/${groupId}`);
-    dispatch(removeGroupState(groupId));
+    dispatch(removeGroup(groupId));
     toast.success("Group deleted successfully!");
   } catch (error) {
     toast.error(error.response?.data?.message || "Failed to delete group");
