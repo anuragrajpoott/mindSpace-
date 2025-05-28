@@ -43,7 +43,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5174",
+    origin: "*" || "https://mind-space-plus.onrender.com",
     credentials: true,
   })
 );
