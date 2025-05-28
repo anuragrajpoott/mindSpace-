@@ -2,10 +2,10 @@
 
 import { axiosConnector } from "../../services/axios";
 import { endPoints } from "../../services/apis";
-import { setLoading, setGroups, toggleJoinGroup } from "../../redux/Slices/groupSlice";
+import { setLoading, setGroups } from "../../redux/Slices/groupSlice";
 import toast from "react-hot-toast";
 
-const { GET_GROUPS, JOIN_GROUP, LEAVE_GROUP } = endPoints;
+const { GET_GROUPS, JOIN_GROUP } = endPoints;
 
 /**
  * Fetch all support groups
@@ -27,10 +27,6 @@ export const fetchGroups = () => async (dispatch) => {
   }
 };
 
-/**
- * Toggle join/leave a group
- * @param {string} groupId - Group ID
- */
 export const toggleGroupJoin = (groupId) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
@@ -38,14 +34,7 @@ export const toggleGroupJoin = (groupId) => async (dispatch) => {
     let res = await axiosConnector("POST", JOIN_GROUP(groupId));
     let { joined } = res.data;
 
-    // If already joined, try leaving
-    if (!joined) {
-      res = await axiosConnector("POST", LEAVE_GROUP(groupId));
-      joined = !res.data.left;
-    }
-
-    dispatch(toggleJoinGroup({ groupId, joined }));
-    toast.success(joined ? "Joined group" : "Left group");
+    toast.success("Joined group");
   } catch (error) {
     console.error("Toggle Join Group Error:", error);
     toast.error(error?.response?.data?.message || error.message || "Group join/leave failed");

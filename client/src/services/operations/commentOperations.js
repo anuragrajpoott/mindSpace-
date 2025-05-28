@@ -1,12 +1,12 @@
 import { axiosConnector } from "../axios";
 import { endPoints } from "../apis";
 import toast from "react-hot-toast";
-import { setLoading, setComments, addComment as addCommentAction, removeComment } from "../../redux/slice";
+import { setLoading, setComments} from "../../redux/Slices/commentSlice";
 
 export const addComment = (postId, commentText) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("POST", endPoints.COMMENT_POST_API, { postId, comment: commentText });
+    const res = await axiosConnector("POST", endPoints.CREATE_COMMENT, { postId, comment: commentText });
     if (!res.data.success) throw new Error(res.data.message);
     toast.success("Comment added");
     dispatch(addCommentAction(res.data.comment));
@@ -20,7 +20,7 @@ export const addComment = (postId, commentText) => async (dispatch) => {
 export const getComments = (postId) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("GET", endPoints.GET_COMMENTS_API, null, null, { postId });
+    const res = await axiosConnector("GET", endPoints.GET_COMMENTS, null, null, { postId });
     if (!res.data.success) throw new Error(res.data.message);
     dispatch(setComments(res.data.comments));
   } catch (error) {
@@ -33,7 +33,7 @@ export const getComments = (postId) => async (dispatch) => {
 export const deleteComment = (commentId) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("DELETE", `${endPoints.DELETE_COMMENT_API}/${commentId}`);
+    const res = await axiosConnector("DELETE", `${endPoints.DELETE_COMMENT}/${commentId}`);
     if (!res.data.success) throw new Error(res.data.message);
     toast.success("Comment deleted");
     dispatch(removeComment(commentId));

@@ -1,14 +1,14 @@
 import { axiosConnector } from "../axios";
 import { endPoints } from "../apis";
 import toast from "react-hot-toast";
-import { setLoading } from "../../redux/slice";
+import { setLoading,setLikes } from "../../redux/Slices/likeSlice";
 
-export const likePost = (postId) => async (dispatch) => {
+export const toggleLike = (postId) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("POST", endPoints.LIKE_POST_API, { postId });
+    const res = await axiosConnector("POST", endPoints.TOGGLE_LIKE, { postId });
     if (!res.data.success) throw new Error(res.data.message);
-    toast.success("Post liked");
+    toast.success("Post liked/unliked");
     // Optionally update likes in redux here if you manage likes state
   } catch (error) {
     toast.error(error.response?.data?.message || error.message || "Failed to like post");
@@ -17,16 +17,18 @@ export const likePost = (postId) => async (dispatch) => {
   }
 };
 
-export const unlikePost = (postId) => async (dispatch) => {
+export const getLikes = (postId) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("POST", endPoints.UNLIKE_POST_API, { postId });
+    const res = await axiosConnector("POST", endPoints.GET_LIKES, { postId });
     if (!res.data.success) throw new Error(res.data.message);
-    toast.success("Post unliked");
-    // Optionally update likes in redux here if you manage likes state
+
+    setLikes(res.data.likes)
+
   } catch (error) {
-    toast.error(error.response?.data?.message || error.message || "Failed to unlike post");
+    console.log("error getting likes", error)
   } finally {
     dispatch(setLoading(false));
   }
 };
+

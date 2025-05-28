@@ -21,7 +21,7 @@ export const endPoints = {
   GET_POSTS: `/posts`,
   DELETE_POST: (postId) => `/posts/${postId}`,
   UPDATE_POST:(postId)=>`/posts/${postId}`,
-  DELETE_POST: (postId)=>`/posts/${postId}`,
+
 
   // ========================
   // Likes

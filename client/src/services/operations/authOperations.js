@@ -1,24 +1,23 @@
 import { axiosConnector } from "../../services/axios";
 import { endPoints } from "../../services/apis";
-import { setLoading, setUser } from "../../redux/Slices/authSlice";
+import { setLoading, setToken } from "../../redux/Slices/authSlice";
 import toast from "react-hot-toast";
+import { setUser } from "../../redux/Slices/userSlice";
 
-const { SIGNUP_API, LOGIN_API, LOGOUT_API } = endPoints;
+const { SIGNUP, LOGIN } = endPoints;
 
-/**
- * Registers a new user and navigates to feed.
- * @param {Object} formData - Signup form data
- * @param {Function} navigate - React router navigation function
- */
+
 export const register = (formData, navigate) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("POST", SIGNUP_API, formData, {}, {}, true);
+    const res = await axiosConnector("POST", SIGNUP, formData, {}, {}, true);
     const { success, message, newUser } = res.data;
 
     if (!success) throw new Error(message);
 
     toast.success("Registration successful");
+    dispatch(setToken(newUser.token));
+    localStorage.setItem("token", JSON.stringify(newUser.token));
     dispatch(setUser(newUser));
     localStorage.setItem("user", JSON.stringify(newUser));
     navigate("/feed");
@@ -30,15 +29,11 @@ export const register = (formData, navigate) => async (dispatch) => {
   }
 };
 
-/**
- * Logs in user and navigates to feed.
- * @param {Object} formData - Login form data
- * @param {Function} navigate - React router navigation function
- */
+
 export const login = (formData, navigate) => async (dispatch) => {
   dispatch(setLoading(true));
   try {
-    const res = await axiosConnector("POST", LOGIN_API, formData, {}, {}, true);
+    const res = await axiosConnector("POST", LOGIN, formData, {}, {}, true);
     const { success, message, existingUser } = res.data;
 
     if (!success) throw new Error(message);
@@ -46,6 +41,8 @@ export const login = (formData, navigate) => async (dispatch) => {
     toast.success("Login successful");
     dispatch(setUser(existingUser));
     localStorage.setItem("user", JSON.stringify(existingUser));
+    dispatch(setToken(existingUser.token));
+    localStorage.setItem("token", JSON.stringify(existingUser.token));
     navigate("/feed");
   } catch (error) {
     console.error("Login error:", error);
@@ -55,17 +52,8 @@ export const login = (formData, navigate) => async (dispatch) => {
   }
 };
 
-/**
- * Logs out the user from frontend and backend.
- * @param {Function} [navigate] - Optional: navigate to login page
- */
-export const logout = (navigate) => async (dispatch) => {
-  try {
-    await axiosConnector("POST", LOGOUT_API, {}, {}, {}, true);
-  } catch (err) {
-    console.warn("Logout error:", err.message);
-  }
 
+export const logout = (navigate) => async (dispatch) => {
   dispatch(setUser(null));
   localStorage.removeItem("user");
   toast.success("Logged out successfully");
