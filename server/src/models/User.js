@@ -9,6 +9,18 @@ const otpSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const resetPasswordTokenSchema = new mongoose.schema(
+  {
+    code:{
+      type:String
+    },
+    expiresAt:{
+      type:Date
+    }
+
+  }
+)
+
 const userSchema = new mongoose.Schema(
   {
     userName: {
@@ -93,14 +105,17 @@ const userSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    resetPasswordToken:resetPasswordTokenSchema,
     otp: otpSchema,
     token: {
       type: String,
     },
   },
+  
   {
     timestamps: true,
-  }
+  },
+  
 );
 
 const User = mongoose.model("User", userSchema);

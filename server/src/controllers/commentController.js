@@ -4,11 +4,11 @@ import Post from "../models/Post.js";
 // ========== CREATE A COMMENT ==========
 export const createComment = async (req, res) => {
   try {
-    const { postId, text } = req.body;
+    const { postId, content } = req.body;
     const userId = req.user.id;
 
-    if (!text || !postId) {
-      return res.status(400).json({ success: false, message: "Post ID and text are required" });
+    if (!text || !postId || !content) {
+      return res.status(400).json({ success: false, message: "Post ID, content and text are required" });
     }
 
     const post = await Post.findById(postId);
@@ -16,7 +16,7 @@ export const createComment = async (req, res) => {
       return res.status(404).json({ success: false, message: "Post not found" });
     }
 
-    const comment = await Comment.create({ user: userId, post: postId, text });
+    const comment = await Comment.create({ user: userId, post: postId,content });
 
     post.comments.push(comment._id);
     await post.save();
@@ -35,7 +35,7 @@ export const getCommentsByPost = async (req, res) => {
 
     const comments = await Comment.find({ post: postId })
       .sort({ createdAt: -1 })
-      .populate("user", "userName avatar");
+      .populate("user", "userName");
 
     res.status(200).json({ success: true, comments });
   } catch (error) {
@@ -48,7 +48,7 @@ export const getCommentsByPost = async (req, res) => {
 export const updateComment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { text } = req.body;
+    const { content } = req.body;
     const userId = req.user.id;
 
     const comment = await Comment.findById(id);
@@ -60,7 +60,7 @@ export const updateComment = async (req, res) => {
       return res.status(403).json({ success: false, message: "Unauthorized to edit this comment" });
     }
 
-    comment.text = text || comment.text;
+    comment.content = content || comment.content;
     await comment.save();
 
     res.status(200).json({ success: true, message: "Comment updated", comment });

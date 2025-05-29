@@ -11,6 +11,8 @@ const Signup = () => {
   const { loading, error } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
+    firstName:"",
+    lastName:"",
     userName: "",
     password: "",
     confirmPassword: "",
@@ -19,7 +21,7 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const { userName, password, confirmPassword } = formData;
+  const { userName, password, confirmPassword, firstName, lastName } = formData;
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -41,7 +43,7 @@ const Signup = () => {
       return;
     }
 
-    dispatch(register({ userName, password }, navigate));
+    dispatch(register({ firstName,lastName,userName, password , confirmPassword}, navigate));
   };
 
   return (
@@ -72,6 +74,38 @@ const Signup = () => {
             autoComplete="username"
             aria-label="Username"
             placeholder="Choose a username"
+          />
+        </label>
+
+        
+        <label className="flex flex-col w-full text-left">
+          <span className="mb-1 font-medium">Last Name</span>
+          <input
+            type="text"
+            name="lastName"
+            value={lastName}
+            onChange={handleChange}
+            required
+            className="border-2 p-3 rounded focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
+            autoComplete="lastName"
+            aria-label="Lastname"
+            placeholder="Choose a Lastname"
+          />
+        </label>
+
+        
+        <label className="flex flex-col w-full text-left">
+          <span className="mb-1 font-medium">First Name</span>
+          <input
+            type="text"
+            name="firstName"
+            value={firstName}
+            onChange={handleChange}
+            required
+            className="border-2 p-3 rounded focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
+            autoComplete="firstName"
+            aria-label="Firstname"
+            placeholder="Choose a Firstname"
           />
         </label>
 

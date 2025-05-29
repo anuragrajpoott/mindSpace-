@@ -28,10 +28,7 @@ const Nav = () => {
   };
 
   const handleSearch = () => {
-    if (search.trim()) {
-      navigate(`/search?query=${encodeURIComponent(search.trim())}`);
-      setSearch("");
-    }
+    //handle search
   };
 
   // Close dropdown on outside click

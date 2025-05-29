@@ -26,13 +26,13 @@ export const registerUser = async (req, res) => {
       lastName,
       userName,
       password: hashedPassword,
-      // other default fields...
     });
 
-    // Optional: send welcome email
-    // await mailSender(email, 'Welcome to Supportify+', `<p>Hi ${firstName}, welcome!</p>`);
+    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
-    res.status(201).json({ success: true, message: 'User registered successfully', userId: newUser._id });
+    newUser.token = token
+
+    res.status(201).json({ success: true, message: 'User registered successfully', data:{newUser,token}});
   } catch (error) {
     console.error('Register User Error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -79,33 +79,19 @@ export const logoutUser = async (req, res) => {
   }
 };
 
-// ========== GET CURRENT USER ==========
-export const getCurrentUser = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const user = await User.findById(userId).select('-password');
-    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
-
-    res.status(200).json({ success: true, user });
-  } catch (error) {
-    console.error('Get Current User Error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-};
-
 // ========== FORGOT PASSWORD ==========
 export const forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ success: false, message: 'Email required' });
+    const { userName } = req.body;
+    if (!userName) return res.status(400).json({ success: false, message: 'Email required' });
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ userName });
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
     // Generate token and expiration
     const resetToken = crypto.randomBytes(20).toString('hex');
     user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    user.resetPasswordToken.expiresAt = Date.now() + 3600000; // 1 hour
 
     await user.save();
 
@@ -117,7 +103,7 @@ export const forgotPassword = async (req, res) => {
       <p>If you did not request, ignore this email.</p>
     `;
 
-    await mailSender(email, 'Password Reset Request', message);
+    await mailSender(user.email, 'Password Reset Request', message);
 
     res.status(200).json({ success: true, message: 'Reset email sent' });
   } catch (error) {
@@ -130,15 +116,16 @@ export const forgotPassword = async (req, res) => {
 export const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
-    const { password } = req.body;
+    const { password, confirmPassword } = req.body;
 
-    if (!password) return res.status(400).json({ success: false, message: 'Password required' });
+    if (!password || !confirmPassword) return res.status(400).json({ success: false, message: 'Password required' });
+
+    if(password != confirmPassword) return res.status(400).json({ success: false, message: 'Password not matched' });
 
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
     const user = await User.findOne({
       resetPasswordToken: hashedToken,
-      resetPasswordExpires: { $gt: Date.now() },
     });
 
     if (!user) return res.status(400).json({ success: false, message: 'Invalid or expired token' });
@@ -160,12 +147,13 @@ export const resetPassword = async (req, res) => {
 export const updatePassword = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { currentPassword, newPassword } = req.body;
+    const { currentPassword, newPassword, confirmNewPassword } = req.body;
 
-    if (!currentPassword || !newPassword) {
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
       return res.status(400).json({ success: false, message: 'Current and new passwords are required' });
     }
 
+    if(newPassword != confirmNewPassword) return res.status(400).json({ success: false, message: 'Password not matched' });
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
