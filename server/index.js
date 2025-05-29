@@ -43,7 +43,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin:  `https://vercel.com/anurags-projects-c221e5e2/mind-space-plus/CUvnKWh5Nn3MVViGaY2i5EsKDZUm`,
+    origin:  "*",
     credentials: true,
   })
 );
