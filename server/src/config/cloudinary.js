@@ -1,6 +1,17 @@
 import { v2 as cloudinary } from "cloudinary";
 
-export const uploadImageToCloudinary = async (file, folder = "default_folder", height, quality) => {
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+export const fileUpload = async (
+  file,
+  folder = process.env.CLOUD_FOLDER,
+  height,
+  quality
+) => {
   if (!file?.tempFilePath) {
     throw new Error("File or tempFilePath missing");
   }
@@ -12,14 +23,12 @@ export const uploadImageToCloudinary = async (file, folder = "default_folder", h
 
   if (height) {
     options.height = height;
-    options.crop = "scale"; // maintain aspect ratio by scaling height
+    options.crop = "scale";
   }
 
   if (quality) {
     options.quality = quality;
   }
-
-  console.log("Cloudinary upload options:", options);
 
   return await cloudinary.uploader.upload(file.tempFilePath, options);
 };
