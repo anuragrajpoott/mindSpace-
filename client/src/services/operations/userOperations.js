@@ -32,7 +32,7 @@ export const signUp = (formData, navigate) => async (dispatch) => {
     dispatch(setToken(response.data.token));
     localStorage.setItem("user", JSON.stringify(response.data.newUser));
     localStorage.setItem("token", JSON.stringify(response.data.token));
-    navigate("/feed");
+    navigate("/");
   } catch {}
 };
 

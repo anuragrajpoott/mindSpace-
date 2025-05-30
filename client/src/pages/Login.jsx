@@ -111,7 +111,7 @@ const Login = () => {
         </button>
 
         <Link
-          to="/sign-up"
+          to="/register"
           className="italic text-sm text-gray-600 hover:underline mt-3"
           aria-label="Sign up link"
         >

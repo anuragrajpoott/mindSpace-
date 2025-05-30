@@ -29,7 +29,7 @@ export const createResource = (resourceData, navigate) => async (dispatch) => {
     if (!response?.data?.success) throw new Error(response.data.message);
 
     dispatch(addResource(response.data.resource));
-    navigate("/resource");
+    navigate("/resources");
   } catch {}
 };
 
@@ -45,7 +45,7 @@ export const updateResource = (resourceId, updatedData, navigate) => async (disp
     if (!response?.data?.success) throw new Error(response.data.message);
 
     dispatch(setUpdatedResource(response.data.resource));
-    navigate("/resource");
+    navigate("/resources");
   } catch {}
 };
 

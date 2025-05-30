@@ -43,7 +43,7 @@ const Home = () => {
                 Continue Journey
               </button>
             </Link>
-            <Link to="/sign-up" aria-label="Start Journey - Sign Up">
+            <Link to="/register" aria-label="Start Journey - Sign Up">
               <button
                 className="p-3 bg-amber-100 hover:bg-amber-200 rounded-lg shadow-md transition focus:ring-2 focus:ring-amber-400 focus:outline-none"
                 type="button"
