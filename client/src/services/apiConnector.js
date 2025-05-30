@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "https://mind-space-plus.onrender.com/",
+  baseURL: "https://mind-space-plus.onrender.com/api/v1",
   withCredentials: true,
 });
 
