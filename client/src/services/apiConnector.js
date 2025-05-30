@@ -10,7 +10,7 @@ export const axiosConnector = (method, url, data , headers , params ) => {
   return axiosInstance({
         method:`${method}`,
         url:`${url}`,
-        data: bodyData ? bodyData : null,
+        data: data ? data : null,
         headers: headers ? headers: null,
         params: params ? params : null,
   });
