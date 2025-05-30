@@ -15,7 +15,10 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ origin: "https://mind-space-plus.vercel.app", credentials: true }));
+app.use(cors({ origin: "https://mind-space-plus.vercel.app", 
+              credentials: true , 
+              methods: ["GET", "POST", "PUT", "DELETE"],
+              allowedHeaders: ["Content-Type", "Authorization"] }));
 app.use(fileUpload({ useTempFiles: true, tempFileDir: "/tmp/" }));
 
 dbConnect();
