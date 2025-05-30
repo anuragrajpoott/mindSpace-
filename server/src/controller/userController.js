@@ -28,8 +28,8 @@ export const registerUser = async (req, res) => {
     newUser.password = undefined;
     const cookieOptions = {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === "production", // set secure flag in production
-      // sameSite: "Lax",
+      secure: true, // set secure flag in production
+      sameSite: "None",
       expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
     };
 
@@ -90,8 +90,8 @@ export const loginUser = async (req, res) => {
     user.password = undefined;
     const cookieOptions = {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === "production", // set secure flag in production
-      // sameSite: "Lax",
+      secure: true, // set secure flag in production
+      sameSite: "None",
       expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
     };
 
