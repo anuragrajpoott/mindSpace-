@@ -1,67 +1,60 @@
-import { createSlice } from "@reduxjs/toolkit";
-
-const initialState = {
-  posts: [],        // List of posts
-  loading: false,
-  error: null,
-  message: null,
-};
+// src/redux/slices/postSlice.js
+import { createSlice } from '@reduxjs/toolkit'
 
 const postSlice = createSlice({
-  name: "post",
-  initialState,
+  name: 'post',
+  initialState: {
+    posts: [],       // all posts
+    loading: false,
+    error: null,
+    successMessage: null,
+  },
   reducers: {
-    setLoading: (state, action) => {
-      state.loading = action.payload;
+    setPosts(state, action) {
+      state.posts = action.payload
     },
-    setPosts: (state, action) => {
-      state.posts = action.payload;
+    addPost(state, action) {
+      state.posts.unshift(action.payload)
     },
-    addPost: (state, action) => {
-      state.posts.unshift(action.payload); // Add new post at the beginning
-    },
-    updatePost: (state, action) => {
-      const updatedPost = action.payload;
-      const index = state.posts.findIndex((post) => post._id === updatedPost._id);
+    setUpdatedPost(state, action) {
+      const updatedPost = action.payload
+      const index = state.posts.findIndex(post => post._id === updatedPost._id)
       if (index !== -1) {
-        state.posts[index] = updatedPost;
+        state.posts[index] = updatedPost
       }
     },
-    deletePost: (state, action) => {
-      state.posts = state.posts.filter((post) => post._id !== action.payload);
+    setDeletedPost(state, action) {
+      const postId = action.payload
+      state.posts = state.posts.filter(post => post._id !== postId)
     },
-    setError: (state, action) => {
-      state.error = action.payload;
+    setLoading(state, action) {
+      state.loading = action.payload
     },
-    setMessage: (state, action) => {
-      state.message = action.payload;
+    setError(state, action) {
+      state.error = action.payload
     },
-    clearError: (state) => {
-      state.error = null;
+    clearError(state) {
+      state.error = null
     },
-    clearMessage: (state) => {
-      state.message = null;
+    setSuccessMessage(state, action) {
+      state.successMessage = action.payload
     },
-    resetPostState: (state) => {
-      state.posts = [];
-      state.loading = false;
-      state.error = null;
-      state.message = null;
+    clearSuccessMessage(state) {
+      state.successMessage = null
     },
   },
-});
+})
 
 export const {
-  setLoading,
   setPosts,
   addPost,
-  updatePost,
-  deletePost,
+  setUpdatedPost,
+  setDeletedPost,
+  setLoading,
   setError,
-  setMessage,
   clearError,
-  clearMessage,
-  resetPostState,
-} = postSlice.actions;
+  setSuccessMessage,
+  clearSuccessMessage,
+} = postSlice.actions
 
-export default postSlice.reducer;
+export default postSlice.reducer

@@ -1,36 +1,42 @@
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, Link } from "react-router-dom";
-import { login } from "../services/operations/authOperations";
-import logo from "../assets/images/logo.png";
+import { Link, useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
 import { FcCloseUpMode } from "react-icons/fc";
+import { useDispatch } from "react-redux";
+import { login } from "../services/operations/userOperations";
 
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
     userName: "",
     password: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const { userName, password } = formData;
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    if (error) setError(null); // clear error on input change
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData)
-    dispatch(login(formData, navigate));
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Assuming login returns a promise and throws on failure
+      await dispatch(login(formData, navigate));
+    } catch (err) {
+      setError("Invalid username or password.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,8 +52,15 @@ const Login = () => {
         className="flex flex-col items-center justify-center gap-6 max-w-md mx-auto w-full bg-white p-8 rounded-lg shadow-md"
         onSubmit={handleSubmit}
         aria-label="Login form"
+        noValidate
       >
         <h2 className="text-3xl font-semibold mb-6 text-amber-600">Welcome Back!</h2>
+
+        {error && (
+          <div role="alert" className="text-red-600 font-medium mb-4" aria-live="assertive">
+            {error}
+          </div>
+        )}
 
         <label className="flex flex-col w-full text-left">
           <span className="mb-1 font-medium">Username</span>
@@ -59,32 +72,25 @@ const Login = () => {
             required
             className="border-2 p-3 rounded focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
             autoComplete="username"
-            aria-label="Username"
             placeholder="Enter your username"
+            autoFocus
+            disabled={loading}
           />
         </label>
 
-        <label className="flex flex-col w-full text-left relative">
+        <label className="flex flex-col w-full text-left">
           <span className="mb-1 font-medium">Password</span>
           <input
-            type={showPassword ? "text" : "password"}
+            type="password"
             name="password"
             value={password}
             onChange={handleChange}
             required
-            className="border-2 p-3 rounded focus:outline-none focus:ring-2 focus:ring-amber-400 transition pr-12"
+            className="border-2 p-3 rounded focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
             autoComplete="current-password"
-            aria-label="Password"
             placeholder="Enter your password"
+            disabled={loading}
           />
-          <button
-            type="button"
-            onClick={togglePasswordVisibility}
-            className="absolute right-3 top-8 text-amber-600 hover:text-amber-800 focus:outline-none"
-            aria-label={showPassword ? "Hide password" : "Show password"}
-          >
-            {showPassword ? "🙈" : "👁️"}
-          </button>
 
           <Link
             to="/forgot-password"
@@ -95,22 +101,11 @@ const Login = () => {
           </Link>
         </label>
 
-        {/* Error message */}
-        {error && (
-          <div
-            role="alert"
-            className="text-red-600 font-semibold bg-red-100 p-2 rounded w-full text-center"
-          >
-            {error}
-          </div>
-        )}
-
         <button
           type="submit"
-          className="bg-amber-200 hover:bg-amber-300 px-6 py-3 rounded font-semibold transition disabled:opacity-50 w-full"
-          disabled={loading}
-          aria-busy={loading}
+          className="bg-amber-200 hover:bg-amber-300 px-6 py-3 rounded font-semibold transition w-full disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Log in"
+          disabled={loading}
         >
           {loading ? "Logging in..." : "Log In"}
         </button>

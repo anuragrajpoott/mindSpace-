@@ -1,83 +1,83 @@
-import { axiosConnector } from "../../services/axios";
-import { endPoints } from "../../services/apis";
-import {
-  setLoading,
-  setPosts,
-  addPost,
-  updatePost,
-  deletePost,
-  setError,
-} from "../../redux/Slices/postSlice";
-import toast from "react-hot-toast";
+import { toast } from "react-hot-toast";
+import { axiosConnector, endPoints } from "../apiConnector";
+import { addPost, setDeletedPost, setUpdatedPost, setPosts } from "../../redux/Slices/postSlice";
 
-const { GET_POSTS } = endPoints; // POSTS = '/api/posts'
-
-export const fetchPosts = () => async (dispatch) => {
-  dispatch(setLoading(true));
+async function handleAsyncWithToast(asyncFn, loadingMsg, successMsg, errorMsg) {
+  const toastId = toast.loading(loadingMsg);
   try {
-    const res = await axiosConnector("GET", GET_POSTS );
-    dispatch(setPosts(res.data.posts));
+    const result = await asyncFn();
+    toast.success(successMsg);
+    return result;
   } catch (error) {
-    toast.error(error.response?.data?.message || "Failed to fetch posts");
-    dispatch(setError(error.response?.data?.message || error.message));
+    console.error(errorMsg, error);
+    toast.error(error?.response?.data?.message || errorMsg);
+    throw error;
   } finally {
-    dispatch(setLoading(false));
+    toast.dismiss(toastId);
   }
+}
+
+export const createPost = (postData, navigate) => async (dispatch) => {
+  try {
+    const response = await handleAsyncWithToast(
+      () => axiosConnector("POST", endPoints.CREATE_POST, postData),
+      "Creating post...",
+      "Post created",
+      "Post creation failed"
+    );
+
+    if (!response?.data?.success) throw new Error(response.data.message);
+
+    dispatch(addPost(response.data.post));
+    navigate("/");
+  } catch {}
 };
 
-export const createPost = (postData) => async (dispatch) => {
-  dispatch(setLoading(true));
+export const updatePost = (postId, updatedData, navigate) => async (dispatch) => {
   try {
-    const res = await axiosConnector("POST", POSTS, postData);
-    dispatch(addPost(res.data.post));
-    toast.success("Post created");
-  } catch (error) {
-    toast.error(error.response?.data?.message || "Failed to create post");
-    dispatch(setError(error.response?.data?.message || error.message));
-  } finally {
-    dispatch(setLoading(false));
-  }
+    const response = await handleAsyncWithToast(
+      () => axiosConnector("PUT", `${endPoints.UPDATE_POST}/${postId}`, updatedData),
+      "Updating post...",
+      "Post updated",
+      "Post update failed"
+    );
+
+    if (!response?.data?.success) throw new Error(response.data.message);
+
+    dispatch(setUpdatedPost(response.data.post));
+    navigate("/");
+  } catch {}
 };
 
-export const editPost = (postId, updatedData) => async (dispatch) => {
-  dispatch(setLoading(true));
+export const deletePost = (postId) => async (dispatch) => {
   try {
-    const res = await axiosConnector("PUT", `${POSTS}/${postId}`, updatedData);
-    dispatch(updatePost(res.data.post));
-    toast.success("Post updated");
-  } catch (error) {
-    toast.error(error.response?.data?.message || "Failed to update post");
-    dispatch(setError(error.response?.data?.message || error.message));
-  } finally {
-    dispatch(setLoading(false));
-  }
+    const response = await handleAsyncWithToast(
+      () => axiosConnector("DELETE", `${endPoints.DELETE_POST}/${postId}`),
+      "Deleting post...",
+      "Post deleted",
+      "Delete failed"
+    );
+
+    if (!response?.data?.success) throw new Error(response.data.message);
+
+    dispatch(setDeletedPost());
+  } catch {}
 };
 
-export const removePost = (postId) => async (dispatch) => {
-  dispatch(setLoading(true));
+export const getAllPosts = () => async (dispatch) => {
+  const toastId = toast.loading("Loading posts...");
   try {
-    await axiosConnector("DELETE", `${POSTS}/${postId}`);
-    dispatch(deletePost(postId));
-    toast.success("Post deleted");
-  } catch (error) {
-    toast.error(error.response?.data?.message || "Failed to delete post");
-    dispatch(setError(error.response?.data?.message || error.message));
-  } finally {
-    dispatch(setLoading(false));
-  }
-};
+    const response = await axiosConnector("GET", endPoints.GET_POSTS);
+    if (!response?.data?.success) throw new Error(response.data.message);
 
-export const fetchPostById = (postId) => async (dispatch) => {
-  dispatch(setLoading(true));
-  try {
-    const res = await axiosConnector("GET", `${POSTS}/${postId}`);
-    // You can handle this single post differently if needed
-    // For now, let's just add or update it in the store
-    dispatch(updatePost(res.data.post));
+    console.log(response.data.posts)
+
+    dispatch(setPosts(response.data.posts));
+
   } catch (error) {
-    toast.error(error.response?.data?.message || "Failed to fetch post");
-    dispatch(setError(error.response?.data?.message || error.message));
+    console.error("GET POSTS ERROR:", error);
+    toast.error("Failed to load posts");
   } finally {
-    dispatch(setLoading(false));
+    toast.dismiss(toastId);
   }
 };

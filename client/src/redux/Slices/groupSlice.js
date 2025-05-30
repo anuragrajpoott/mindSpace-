@@ -1,85 +1,75 @@
-import { createSlice } from "@reduxjs/toolkit";
+// src/redux/slices/groupSlice.js
+import { createSlice } from '@reduxjs/toolkit'
 
-const initialState = {
-  groups: [],            // All groups list
-  currentGroup: null,    // Selected group details
-  members: [],           // Members of the selected group
-  loading: false,
-  error: null,
-  message: null,
-};
-
-const groupsSlice = createSlice({
-  name: "groups",
-  initialState,
+const groupSlice = createSlice({
+  name: 'group',
+  initialState: {
+    groups: [],           // all groups
+    currentGroup: null,   // selected or active group details
+    loading: false,
+    error: null,
+    successMessage: null,
+  },
   reducers: {
-    setLoading: (state, action) => {
-      state.loading = action.payload;
+    setGroups(state, action) {
+      state.groups = action.payload
     },
-    setGroups: (state, action) => {
-      state.groups = action.payload;
+    addGroup(state, action) {
+      state.groups.push(action.payload)
     },
-    setCurrentGroup: (state, action) => {
-      state.currentGroup = action.payload;
-    },
-    setMembers: (state, action) => {
-      state.members = action.payload;
-    },
-    addGroup: (state, action) => {
-      state.groups.push(action.payload);
-    },
-    updateSupportGroup: (state, action) => {
-      const index = state.groups.findIndex(g => g._id === action.payload._id);
+    setUpdatedGroup(state, action) {
+      const updatedGroup = action.payload
+      const index = state.groups.findIndex(g => g._id === updatedGroup._id)
       if (index !== -1) {
-        state.groups[index] = action.payload;
+        state.groups[index] = updatedGroup
       }
-      if (state.currentGroup && state.currentGroup._id === action.payload._id) {
-        state.currentGroup = action.payload;
-      }
-    },
-    removeGroup: (state, action) => {
-      state.groups = state.groups.filter(group => group._id !== action.payload);
-      if (state.currentGroup && state.currentGroup._id === action.payload) {
-        state.currentGroup = null;
-        state.members = [];
+      if (state.currentGroup && state.currentGroup._id === updatedGroup._id) {
+        state.currentGroup = updatedGroup
       }
     },
-    setError: (state, action) => {
-      state.error = action.payload;
+    setDeletedGroup(state, action) {
+      const groupId = action.payload
+      state.groups = state.groups.filter(g => g._id !== groupId)
+      if (state.currentGroup && state.currentGroup._id === groupId) {
+        state.currentGroup = null
+      }
     },
-    setMessage: (state, action) => {
-      state.message = action.payload;
+    setCurrentGroup(state, action) {
+      state.currentGroup = action.payload
     },
-    clearError: (state) => {
-      state.error = null;
+    clearCurrentGroup(state) {
+      state.currentGroup = null
     },
-    clearMessage: (state) => {
-      state.message = null;
+    setLoading(state, action) {
+      state.loading = action.payload
     },
-    resetGroupsState: (state) => {
-      state.groups = [];
-      state.currentGroup = null;
-      state.members = [];
-      state.loading = false;
-      state.error = null;
-      state.message = null;
+    setError(state, action) {
+      state.error = action.payload
+    },
+    clearError(state) {
+      state.error = null
+    },
+    setSuccessMessage(state, action) {
+      state.successMessage = action.payload
+    },
+    clearSuccessMessage(state) {
+      state.successMessage = null
     },
   },
-});
+})
 
 export const {
-  setLoading,
   setGroups,
-  setCurrentGroup,
-  setMembers,
   addGroup,
-  updateSupportGroup,
-  removeGroup,
+  setUpdatedGroup,
+  setDeletedGroup,
+  setCurrentGroup,
+  clearCurrentGroup,
+  setLoading,
   setError,
-  setMessage,
   clearError,
-  clearMessage,
-  resetGroupsState,
-} = groupsSlice.actions;
+  setSuccessMessage,
+  clearSuccessMessage,
+} = groupSlice.actions
 
-export default groupsSlice.reducer;
+export default groupSlice.reducer

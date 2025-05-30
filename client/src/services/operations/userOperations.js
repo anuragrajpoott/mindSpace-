@@ -1,70 +1,81 @@
-import { axiosConnector } from "../../services/axios";
-import {
-  setLoading,
-  setError,
-  setAllUsers,
-  setProfile,
-  updateCurrentUserProfile,
-  removeAccount,
-} from "../../redux/Slices/userSlice";
-import toast from "react-hot-toast";
+import { toast } from "react-hot-toast";
+import { axiosConnector, endPoints } from "../apiConnector";
+import { setUser, setToken, clearUser, setProfile } from "../../redux/Slices/userSlice";
 
-const baseUrl = "/users";
-
-// 🔄 Update own profile (PUT /me/profile)
-export const updateOwnProfile = (profileData) => async (dispatch) => {
-  dispatch(setLoading(true));
+async function handleAsyncWithToast(asyncFn, loadingMsg, successMsg, errorMsg) {
+  const toastId = toast.loading(loadingMsg);
   try {
-    const res = await axiosConnector("PUT", `${baseUrl}/me/profile`, profileData);
-    dispatch(updateCurrentUserProfile(res.data.updatedProfile));
-    toast.success("Profile updated");
+    const result = await asyncFn();
+    toast.success(successMsg);
+    return result;
   } catch (error) {
-    toast.error("Profile update failed");
-    dispatch(setError(error.message));
+    console.error(errorMsg, error);
+    toast.error(error?.response?.data?.message || errorMsg);
+    throw error;
   } finally {
-    dispatch(setLoading(false));
+    toast.dismiss(toastId);
   }
+}
+
+export const signUp = (formData, navigate) => async (dispatch) => {
+  try {
+    const response = await handleAsyncWithToast(
+      () => axiosConnector("POST", endPoints.REGISTER, formData),
+      "Signing up...",
+      "Signup successful",
+      "Signup failed"
+    );
+
+    if (!response?.data?.success) throw new Error(response.data.message);
+
+    dispatch(setUser(response.data.newUser));
+    dispatch(setToken(response.data.token));
+    localStorage.setItem("user", JSON.stringify(response.data.newUser));
+    localStorage.setItem("token", JSON.stringify(response.data.token));
+    navigate("/feed");
+  } catch {}
 };
 
-// ❌ Delete own account (DELETE /me)
-export const deleteOwnAccount = () => async (dispatch) => {
-  dispatch(setLoading(true));
+export const login = (formData, navigate) => async (dispatch) => {
   try {
-    await axiosConnector("DELETE", `${baseUrl}/me`);
-    dispatch(removeAccount());
-    toast.success("Account deleted");
-  } catch (error) {
-    toast.error("Account deletion failed");
-    dispatch(setError(error.message));
-  } finally {
-    dispatch(setLoading(false));
-  }
+    const response = await handleAsyncWithToast(
+      () => axiosConnector("POST", endPoints.LOGIN, formData),
+      "Logging in...",
+      "Login successful",
+      "Login failed"
+    );
+
+    if (!response?.data?.success) throw new Error(response.data.message);
+
+    dispatch(setUser(response.data.user));
+    dispatch(setToken(response.data.token));
+    localStorage.setItem("user", JSON.stringify(response.data.user));
+    localStorage.setItem("token", JSON.stringify(response.data.token));
+    navigate("/");
+  } catch {}
 };
 
-// 👤 Get user profile by ID (GET /:id)
-export const getUserProfileById = (id) => async (dispatch) => {
-  dispatch(setLoading(true));
-  try {
-    const res = await axiosConnector("GET", `${baseUrl}/${id}`);
-    dispatch(setProfile(res.data.user));
-  } catch (error) {
-    toast.error("Failed to load profile");
-    dispatch(setError(error.message));
-  } finally {
-    dispatch(setLoading(false));
-  }
+export const logout = (navigate) => (dispatch) => {
+  dispatch(clearUser());
+  localStorage.removeItem("user");
+  localStorage.removeItem("token");
+  toast.success("Logged out");
+  navigate("/log-in");
 };
 
-// 📋 Get all users (GET /)
-export const fetchAllUsers = () => async (dispatch) => {
-  dispatch(setLoading(true));
+export const updateProfile = (userId, profileData, navigate) => async (dispatch) => {
   try {
-    const res = await axiosConnector("GET", baseUrl);
-    dispatch(setAllUsers(res.data.users));
-  } catch (error) {
-    toast.error("Failed to fetch users");
-    dispatch(setError(error.message));
-  } finally {
-    dispatch(setLoading(false));
-  }
+    const response = await handleAsyncWithToast(
+      () => axiosConnector("PUT", `${endPoints.UPDATE_PROFILE}/${userId}`, profileData),
+      "Updating profile...",
+      "Profile updated",
+      "Update failed"
+    );
+
+    if (!response?.data?.success) throw new Error(response.data.message);
+
+    dispatch(setProfile(response.data.updatedUser));
+    localStorage.setItem("user", JSON.stringify(response.data.updatedUser));
+    navigate("/profile");
+  } catch {}
 };

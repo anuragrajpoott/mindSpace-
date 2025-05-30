@@ -35,37 +35,43 @@ import {
   deleteMoodLog
 } from '../controller/moodLogController.js';
 
+import { authenticateUser } from '../middleware/middleware.js';
+
 const router = express.Router();
 
 // ========== USER ==========
+// Public routes
 router.post('/user/register', registerUser);
 router.post('/user/login', loginUser);
-router.put('/user/updateProfile/:userId', updateProfile);
+
+// Protected routes
+router.put('/user/updateProfile/:userId', authenticateUser, updateProfile);
 
 // ========== RESOURCE ==========
-router.post('/resources', createResource);
-router.put('/resources/:resourceId', updateResource);
-router.get('/resources', getAllResources);
-router.delete('/resources/:resourceId', deleteResource);
+// Protect all resource routes (assuming only logged in users can CRUD resources)
+router.post('/resources', authenticateUser, createResource);
+router.put('/resources/:resourceId', authenticateUser, updateResource);
+router.get('/resources', authenticateUser, getAllResources);
+router.delete('/resources/:resourceId', authenticateUser, deleteResource);
 
 // ========== POST ==========
-router.post('/posts', createPost);
-router.put('/posts/:postId', updatePost);
-router.delete('/posts/:postId', deletePost);
-router.get('/posts', getAllPosts);
+router.post('/posts', authenticateUser, createPost);
+router.put('/posts/:postId', authenticateUser, updatePost);
+router.delete('/posts/:postId', authenticateUser, deletePost);
+router.get('/posts', authenticateUser, getAllPosts);
 
 // ========== GROUP ==========
-router.post('/groups', createGroup);
-router.get('/groups', getAllGroups);
-router.put('/groups/:groupId', updateGroup);
-router.delete('/groups/:groupId', deleteGroup);
-router.post('/groups/:groupId/join', joinGroup);
-router.post('/groups/:groupId/message', sendMessageToGroup);
+router.post('/groups', authenticateUser, createGroup);
+router.get('/groups', authenticateUser, getAllGroups);
+router.put('/groups/:groupId', authenticateUser, updateGroup);
+router.delete('/groups/:groupId', authenticateUser, deleteGroup);
+router.post('/groups/:groupId/join', authenticateUser, joinGroup);
+router.post('/groups/:groupId/message', authenticateUser, sendMessageToGroup);
 
 // ========== MOODLOG ==========
-router.post('/moodlog', createMoodLog);
-router.get('/moodlog', getMoodLog);
-router.put('/moodlog', updateMoodLog);
-router.delete('/', deleteMoodLog);
+router.post('/moodlog', authenticateUser, createMoodLog);
+router.get('/moodlog', authenticateUser, getMoodLog);
+router.put('/moodlog', authenticateUser, updateMoodLog);
+router.delete('/moodlog', authenticateUser, deleteMoodLog);
 
 export default router;

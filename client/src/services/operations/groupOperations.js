@@ -1,117 +1,80 @@
-import { axiosConnector } from "../../services/axios";
-import {
-  setLoading,
-  setGroups,
-  addGroup,
-  updateSupportGroup,
-  removeGroup,
-  setError,
-} from "../../redux/Slices/groupSlice";
-import toast from "react-hot-toast";
+import { toast } from "react-hot-toast";
+import { axiosConnector, endPoints } from "../apiConnector";
+import { addGroup, setDeletedGroup, setUpdatedGroup, setGroups } from "../../redux/Slices/groupSlice";
 
-// Backend endpoints (use your endpoints config or replace with strings)
-const baseUrl = "/groups";
-
-// Create group (POST /)
-export const createGroup = (groupData) => async (dispatch) => {
-  dispatch(setLoading(true));
+async function handleAsyncWithToast(asyncFn, loadingMsg, successMsg, errorMsg) {
+  const toastId = toast.loading(loadingMsg);
   try {
-    const res = await axiosConnector("POST", baseUrl, groupData);
-    dispatch(addGroup(res.data.group));
-    toast.success("Group created successfully!");
+    const result = await asyncFn();
+    toast.success(successMsg);
+    return result;
   } catch (error) {
-    toast.error(error.response?.data?.message || "Failed to create group");
-    dispatch(setError(error.response?.data?.message || error.message));
+    console.error(errorMsg, error);
+    toast.error(error?.response?.data?.message || errorMsg);
+    throw error;
   } finally {
-    dispatch(setLoading(false));
+    toast.dismiss(toastId);
+  }
+}
+
+export const createGroup = (groupData, navigate) => async (dispatch) => {
+  try {
+    const response = await handleAsyncWithToast(
+      () => axiosConnector("POST", endPoints.CREATE_GROUP, groupData),
+      "Creating group...",
+      "Group created",
+      "Group creation failed"
+    );
+
+    if (!response?.data?.success) throw new Error(response.data.message);
+
+    dispatch(addGroup(response.data.data));
+    navigate("/groups");
+  } catch {}
+};
+
+export const getAllGroups = () => async (dispatch) => {
+  const toastId = toast.loading("Loading groups...");
+  try {
+    const response = await axiosConnector("GET", endPoints.GET_GROUPS);
+    if (!response?.data?.success) throw new Error(response.data.message);
+
+    dispatch(setGroups(response.data.data))
+  } catch (error) {
+    console.error("GET GROUPS ERROR:", error);
+    toast.error("Failed to fetch groups");
+  } finally {
+    toast.dismiss(toastId);
   }
 };
 
-// Get all groups (GET /)
-export const fetchGroups = () => async (dispatch) => {
-  dispatch(setLoading(true));
+export const updateGroup = (groupId, updatedData, navigate) => async (dispatch) => {
   try {
-    const res = await axiosConnector("GET", baseUrl);
-    dispatch(setGroups(res.data.groups));
-  } catch (error) {
-    toast.error(error.response?.data?.message || "Failed to fetch groups");
-    dispatch(setError(error.response?.data?.message || error.message));
-  } finally {
-    dispatch(setLoading(false));
-  }
+    const response = await handleAsyncWithToast(
+      () => axiosConnector("PUT", `${endPoints.UPDATE_GROUP}/${groupId}`, updatedData),
+      "Updating group...",
+      "Group updated",
+      "Group update failed"
+    );
+
+    if (!response?.data?.success) throw new Error(response.data.message);
+
+    dispatch(setUpdatedGroup(response.data.data));
+    navigate("/groups");
+  } catch {}
 };
 
-// Update group (PUT /:groupId)
-export const updateGroup = (groupId, updateData) => async (dispatch) => {
-  dispatch(setLoading(true));
-  try {
-    const res = await axiosConnector("PUT", `${baseUrl}/${groupId}`, updateData);
-    dispatch(updateGroup(res.data.group));
-    toast.success("Group updated successfully!");
-  } catch (error) {
-    toast.error(error.response?.data?.message || "Failed to update group");
-    dispatch(setError(error.response?.data?.message || error.message));
-  } finally {
-    dispatch(setLoading(false));
-  }
-};
-
-// Delete group (DELETE /:groupId)
 export const deleteGroup = (groupId) => async (dispatch) => {
-  dispatch(setLoading(true));
   try {
-    await axiosConnector("DELETE", `${baseUrl}/${groupId}`);
-    dispatch(removeGroup(groupId));
-    toast.success("Group deleted successfully!");
-  } catch (error) {
-    toast.error(error.response?.data?.message || "Failed to delete group");
-    dispatch(setError(error.response?.data?.message || error.message));
-  } finally {
-    dispatch(setLoading(false));
-  }
-};
+    const response = await handleAsyncWithToast(
+      () => axiosConnector("DELETE", `${endPoints.DELETE_GROUP}/${groupId}`),
+      "Deleting group...",
+      "Group deleted",
+      "Delete failed"
+    );
 
-// Join group (POST /:groupId/join)
-export const joinGroup = (groupId) => async (dispatch) => {
-  dispatch(setLoading(true));
-  try {
-    const res = await axiosConnector("POST", `${baseUrl}/${groupId}/join`);
-    toast.success(res.data.message || "Joined group successfully!");
-    // Optional: update group members or user groups state if needed
-  } catch (error) {
-    toast.error(error.response?.data?.message || "Failed to join group");
-    dispatch(setError(error.response?.data?.message || error.message));
-  } finally {
-    dispatch(setLoading(false));
-  }
-};
+    if (!response?.data?.success) throw new Error(response.data.message);
 
-// Leave group (POST /:groupId/leave)
-export const leaveGroup = (groupId) => async (dispatch) => {
-  dispatch(setLoading(true));
-  try {
-    const res = await axiosConnector("POST", `${baseUrl}/${groupId}/leave`);
-    toast.success(res.data.message || "Left group successfully!");
-    // Optional: update group members or user groups state if needed
-  } catch (error) {
-    toast.error(error.response?.data?.message || "Failed to leave group");
-    dispatch(setError(error.response?.data?.message || error.message));
-  } finally {
-    dispatch(setLoading(false));
-  }
-};
-
-// Get group members (GET /:groupId/members)
-export const fetchGroupMembers = (groupId) => async (dispatch) => {
-  dispatch(setLoading(true));
-  try {
-    const res = await axiosConnector("GET", `${baseUrl}/${groupId}/members`);
-    // You can dispatch action to store members if you have it in your slice
-    // e.g., dispatch(setGroupMembers(res.data.members))
-  } catch (error) {
-    toast.error(error.response?.data?.message || "Failed to fetch group members");
-    dispatch(setError(error.response?.data?.message || error.message));
-  } finally {
-    dispatch(setLoading(false));
-  }
+    dispatch(setDeletedGroup());
+  } catch {}
 };

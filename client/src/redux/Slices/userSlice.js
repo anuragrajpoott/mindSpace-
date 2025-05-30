@@ -1,65 +1,53 @@
-import { createSlice } from "@reduxjs/toolkit";
-
-const initialState = {
-  profile: null,     // detailed profile of a user
-  allUsers: [],      // list of all users
-  loading: false,
-  error: null,
-  message: null,
-};
+// src/redux/slices/userSlice.js
+import { createSlice } from '@reduxjs/toolkit'
 
 const userSlice = createSlice({
-  name: "user",
-  initialState,
-  reducers: {
-    setLoading: (state, action) => {
-      state.loading = action.payload;
-    },
-    setProfile: (state, action) => {
-      state.profile = action.payload;
-    },
-    setAllUsers: (state, action) => {
-      state.allUsers = action.payload;
-    },
-    setError: (state, action) => {
-      state.error = action.payload;
-    },
-    setMessage: (state, action) => {
-      state.message = action.payload;
-    },
-    clearError: (state) => {
-      state.error = null;
-    },
-    clearMessage: (state) => {
-      state.message = null;
-    },
-    resetUserState: (state) => {
-      state.profile = null;
-      state.allUsers = [];
-      state.loading = false;
-      state.error = null;
-      state.message = null;
-    },
-    updateCurrentUserProfile(state,action){
-      state.profile =action.payload
-    },
-    removeAccount(state,action){
-      state.profile = null
-    }
+  name: 'user',
+  initialState: {
+    user: null,
+    token: localStorage.getItem("token", JSON.stringify("token")) || null,
+    loading: false,
+    error: null,
+    isAuthenticated: false,
   },
-});
+  reducers: {
+    setToken(state, action) {
+      state.token = action.payload
+      state.error = null
+    },
+    setUser(state, action) {
+      state.user = action.payload
+      state.error = null
+    },
+    clearUser(state) {
+      state.user = null
+      state.error = null
+    },
+    setLoading(state, action) {
+      state.loading = action.payload
+    },
+    setError(state, action) {
+      state.error = action.payload
+    },
+    clearError(state) {
+      state.error = null
+    },
+    setProfile(state, action) {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload }
+      }
+    },
+  },
+})
 
 export const {
+  setUser,
+  setToken,
+  clearUser,
   setLoading,
-  setProfile,
-  setAllUsers,
   setError,
-  setMessage,
   clearError,
-  clearMessage,
-  resetUserState,
-  removeAccount,
-  updateCurrentUserProfile
-} = userSlice.actions;
+  setProfile,
+} = userSlice.actions
 
-export default userSlice.reducer;
+export default userSlice.reducer

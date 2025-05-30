@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import logo from "../assets/images/logo.png";
+import logo from "../assets/logo.png";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   FcHome,
@@ -10,28 +10,31 @@ import {
   FcLock,
   FcMindMap,
 } from "react-icons/fc";
-import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../services/operations/authOperations";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../services/operations/userOperations";
 
 const Nav = () => {
-  const user = useSelector((state) => state.auth.user);
+
+
   const [search, setSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
   const dropdownRef = useRef(null);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const user = useSelector((state) => state.user.user);
 
   const handleLogout = () => {
-    dispatch(logout());
-    localStorage.removeItem("user");
-    navigate("/login");
+    dispatch(logout(navigate));
+    setDropdownOpen(false);
+
   };
 
   const handleSearch = () => {
-    //handle search
+    console.log("Searching for:", search);
+    // Add your search logic here or dispatch action
   };
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -43,7 +46,11 @@ const Nav = () => {
   }, []);
 
   return (
-    <nav className="bg-white shadow-md px-6 py-4 sticky top-0 z-50" role="navigation" aria-label="Main navigation">
+    <nav
+      className="bg-white shadow-md px-6 py-4 sticky top-0 z-50"
+      role="navigation"
+      aria-label="Main navigation"
+    >
       <div className="flex flex-wrap items-center justify-between gap-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2" aria-label="Home">
@@ -54,10 +61,10 @@ const Nav = () => {
         {/* Navigation Links */}
         <div className="flex gap-6 items-center flex-wrap text-base">
           {[
-            { to: "/feed", icon: <FcHome />, label: "Home" },
-            { to: "/messages", icon: <FcReading />, label: "Messages" },
-            { to: "/support", icon: <FcLike />, label: "Support" },
-            { to: "/notifications", icon: <FcMindMap size={20} />, label: "Notifications" },
+            { to: "/", icon: <FcHome />, label: "Home" },
+            { to: "/groups", icon: <FcReading />, label: "groups" },
+            { to: "/mood-log", icon: <FcLike />, label: "mood-log" },
+            { to: "/resources", icon: <FcMindMap size={20} />, label: "resources" },
           ].map(({ to, icon, label }) => (
             <NavLink
               key={to}
@@ -107,6 +114,12 @@ const Nav = () => {
               aria-haspopup="true"
               aria-expanded={dropdownOpen}
               aria-label="Toggle profile menu"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setDropdownOpen((prev) => !prev);
+                }
+              }}
             >
               {user?.profileImage ? (
                 <img
@@ -119,7 +132,6 @@ const Nav = () => {
               )}
             </button>
 
-            {/* Dropdown Menu */}
             {dropdownOpen && (
               <div
                 className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md py-2 z-50"

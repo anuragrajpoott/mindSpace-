@@ -1,124 +1,92 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useState, useRef } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { FcPortraitMode, FcViewDetails, FcEditImage } from "react-icons/fc";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  getUserProfileById,
-  updateOwnProfile,
-  
-} from "../services/operations/userOperations";
-import {updatePassword} from "../services/operations/authOperations"
 import toast from "react-hot-toast";
-import UpdatePasswordModal from "../components/UpdatePasswordModal";
+
+import {
+  updateProfile
+} from "../services/operations/userOperations";
 
 const MAX_BIO_LENGTH = 300;
 
 const Profile = () => {
   const dispatch = useDispatch();
-  const { user, loading } = useSelector((state) => state.user);
-
-  const [profile, setProfile] = useState(null);
-  const [bio, setBio] = useState("");
-  const [edit, setEdit] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [updatingBio, setUpdatingBio] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [passwordLoading, setPasswordLoading] = useState(false);
-
   const fileInputRef = useRef(null);
 
-  // Load profile when user id is available
-  useEffect(() => {
-    if (!user?._id) return;
+  const { profile, loading, error } = useSelector((state) => state.user);
 
-    const loadProfile = async () => {
-      try {
-        const profileData = await dispatch(getUserProfileById(user._id)).unwrap();
-        setProfile(profileData);
-        setBio(profileData.bio || "");
-      } catch {
-        toast.error("Failed to load profile");
-      }
-    };
+  const [bio, setBio] = useState(profile?.bio || "");
+  const [edit, setEdit] = useState(false);
+  const [bioLoading, setBioLoading] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
-    loadProfile();
-  }, [dispatch, user?._id]);
-
-  // Save bio changes
-  const saveChanges = useCallback(async () => {
+  // Save bio handler
+  const handleSaveBio = async () => {
     if (bio.trim() === "") {
       toast.error("Bio cannot be empty");
       return;
     }
     try {
-      setUpdatingBio(true);
-      await dispatch(updateOwnProfile({ bio })).unwrap();
+      setBioLoading(true);
+      await dispatch(updateProfile({ bio })).unwrap();
       toast.success("Bio updated!");
       setEdit(false);
-
-      const updatedProfile = await dispatch(getUserProfileById(user._id)).unwrap();
-      setProfile(updatedProfile);
-      setBio(updatedProfile.bio || "");
-    } catch {
-      toast.error("Failed to update bio");
+    } catch (err) {
+      toast.error(err?.message || "Failed to update bio");
     } finally {
-      setUpdatingBio(false);
+      setBioLoading(false);
     }
-  }, [bio, dispatch, user?._id]);
-
-  // Trigger file picker
-  const onProfileImageClick = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
-
-  // Handle profile image upload
-  const handleImageChange = useCallback(
-    async (e) => {
-      if (!e.target.files?.length) return;
-      const file = e.target.files[0];
-
-      try {
-        setUploadingImage(true);
-
-        const formData = new FormData();
-        formData.append("profileImage", file);
-
-        await dispatch(updateOwnProfile(formData)).unwrap();
-
-        toast.success("Profile image updated!");
-
-        const updatedProfile = await dispatch(getUserProfileById(user._id)).unwrap();
-        setProfile(updatedProfile);
-      } catch {
-        toast.error("Failed to upload image");
-      } finally {
-        setUploadingImage(false);
-      }
-    },
-    [dispatch, user?._id]
-  );
-
-  // Handle password update from modal
-  const handleUpdatePassword = async ({ currentPassword, newPassword }) => {
-    setPasswordLoading(true);
-    try {
-      await dispatch(updatePassword({ currentPassword, newPassword })).unwrap();
-      toast.success("Password updated successfully!");
-      setShowPasswordModal(false);
-    } catch (error) {
-      toast.error(error.message || "Failed to update password");
-    }
-    setPasswordLoading(false);
   };
 
-  if (loading) {
-    return <p className="text-center mt-10 text-gray-600">Loading profile...</p>;
-  }
+  // File picker open
+  const handleProfileImageClick = () => {
+    fileInputRef.current?.click();
+  };
 
-  if (!profile) {
-    return (
-      <p className="text-center mt-10 text-gray-600">No profile data available.</p>
-    );
-  }
+  // Upload profile image handler
+  const handleImageChange = async (e) => {
+    if (!e.target.files?.length) return;
+
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = async () => {
+      try {
+        setImageLoading(true);
+        // Assuming uploadProfileImage expects base64 or FormData - adjust if needed
+        await dispatch(updateProfile({ image: reader.result })).unwrap();
+        toast.success("Profile image updated!");
+      } catch (err) {
+        toast.error(err?.message || "Failed to upload image");
+      } finally {
+        setImageLoading(false);
+      }
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  // Password update handler
+  const handleUpdatePassword = async ({ currentPassword, newPassword }) => {
+    try {
+      setPasswordLoading(true);
+      await dispatch(updateProfile({ currentPassword, newPassword })).unwrap();
+      toast.success("Password updated successfully!");
+      setPasswordModalOpen(false);
+    } catch (err) {
+      toast.error(err?.message || "Failed to update password");
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  // Reset bio input on cancel
+  const handleCancelEdit = () => {
+    setBio(profile?.bio || "");
+    setEdit(false);
+  };
 
   return (
     <div className="min-h-screen bg-blue-50 p-6 flex justify-center">
@@ -126,7 +94,7 @@ const Profile = () => {
         <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
           {/* Profile Image + Upload */}
           <div className="relative">
-            {profile.profileImage ? (
+            {profile?.profileImage ? (
               <img
                 src={profile.profileImage}
                 alt={`${profile.name}'s profile picture`}
@@ -140,10 +108,10 @@ const Profile = () => {
             <button
               title="Change profile image"
               aria-describedby="uploadHelp"
-              onClick={onProfileImageClick}
+              onClick={handleProfileImageClick}
               className="absolute bottom-1 right-1 bg-white rounded-full p-1 shadow hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               type="button"
-              disabled={uploadingImage}
+              disabled={imageLoading}
             >
               <FcEditImage size={24} />
             </button>
@@ -156,16 +124,16 @@ const Profile = () => {
               ref={fileInputRef}
               className="hidden"
               onChange={handleImageChange}
-              disabled={uploadingImage}
+              disabled={imageLoading}
             />
           </div>
 
           {/* User Info */}
           <div className="flex-1">
-            <h2 className="text-3xl font-bold text-blue-900">{profile.name}</h2>
+            <h2 className="text-3xl font-bold text-blue-900">{profile?.name}</h2>
             <p className="text-gray-600 mt-1">
-              <span className="font-semibold">{profile.followers}</span> followers •{" "}
-              <span className="font-semibold">{profile.following}</span> following
+              <span className="font-semibold">{profile?.followers ?? 0}</span> followers •{" "}
+              <span className="font-semibold">{profile?.following ?? 0}</span> following
             </p>
 
             {/* Bio Section */}
@@ -179,31 +147,28 @@ const Profile = () => {
                     onChange={(e) => setBio(e.target.value.slice(0, MAX_BIO_LENGTH))}
                     className="border rounded-md p-3 min-h-[80px]"
                     maxLength={MAX_BIO_LENGTH}
-                    disabled={updatingBio}
+                    disabled={bioLoading}
                   />
                   <p className="text-sm text-gray-500 text-right">
                     {bio.length}/{MAX_BIO_LENGTH}
                   </p>
                   <div className="flex gap-3">
                     <button
-                      onClick={saveChanges}
-                      disabled={bio.trim() === "" || updatingBio}
+                      onClick={handleSaveBio}
+                      disabled={bio.trim() === "" || bioLoading}
                       className={`text-white px-5 py-2 rounded-md transition ${
-                        bio.trim() === "" || updatingBio
+                        bio.trim() === "" || bioLoading
                           ? "bg-gray-400 cursor-not-allowed"
                           : "bg-green-600 hover:bg-green-700"
                       }`}
                     >
-                      {updatingBio ? "Saving..." : "Save"}
+                      {bioLoading ? "Saving..." : "Save"}
                     </button>
                     <button
-                      onClick={() => {
-                        setBio(profile.bio || "");
-                        setEdit(false);
-                      }}
+                      onClick={handleCancelEdit}
                       className="bg-gray-300 hover:bg-gray-400 px-5 py-2 rounded-md transition"
                       type="button"
-                      disabled={updatingBio}
+                      disabled={bioLoading}
                     >
                       Cancel
                     </button>
@@ -211,7 +176,9 @@ const Profile = () => {
                 </div>
               ) : (
                 <div className="flex justify-between items-center">
-                  <p className="text-gray-800 whitespace-pre-wrap">{bio || "No bio set yet."}</p>
+                  <p className="text-gray-800 whitespace-pre-wrap">
+                    {profile?.bio || "No bio set yet."}
+                  </p>
                   <button
                     onClick={() => setEdit(true)}
                     className="text-blue-600 underline hover:text-blue-700"
@@ -226,7 +193,7 @@ const Profile = () => {
             {/* Update Password Button */}
             <div className="mt-6">
               <button
-                onClick={() => setShowPasswordModal(true)}
+                onClick={() => setPasswordModalOpen(true)}
                 className="bg-amber-200 hover:bg-amber-300 px-5 py-2 rounded font-semibold"
                 type="button"
               >
@@ -242,11 +209,11 @@ const Profile = () => {
             <FcViewDetails /> Posts
           </h3>
 
-          {profile.posts?.length === 0 ? (
+          {profile?.posts?.length === 0 ? (
             <p className="text-gray-600">You have no posts yet.</p>
           ) : (
             <ul className="space-y-4 max-w-3xl">
-              {profile.posts?.map((post) => (
+              {profile?.posts?.map((post) => (
                 <li
                   key={post._id}
                   className="bg-blue-100 p-4 rounded-md shadow-sm whitespace-pre-wrap"
@@ -258,13 +225,71 @@ const Profile = () => {
           )}
         </section>
 
-        {/* Update Password Modal */}
-        <UpdatePasswordModal
-          show={showPasswordModal}
-          onClose={() => setShowPasswordModal(false)}
-          onUpdatePassword={handleUpdatePassword}
-          loading={passwordLoading}
-        />
+        {/* Password Modal (simple example, implement your own modal) */}
+        {passwordModalOpen && (
+          <PasswordModal
+            loading={passwordLoading}
+            onClose={() => setPasswordModalOpen(false)}
+            onSubmit={handleUpdatePassword}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Simple Password Modal example, you can replace with your own modal implementation
+const PasswordModal = ({ loading, onClose, onSubmit }) => {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+    >
+      <div className="bg-white rounded-md p-6 max-w-md w-full">
+        <h2 className="text-xl font-semibold mb-4">Update Password</h2>
+        <label className="block mb-2">
+          Current Password
+          <input
+            type="password"
+            className="border p-2 w-full rounded"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            disabled={loading}
+          />
+        </label>
+        <label className="block mb-4">
+          New Password
+          <input
+            type="password"
+            className="border p-2 w-full rounded"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            disabled={loading}
+          />
+        </label>
+
+        <div className="flex justify-end gap-4">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => onSubmit({ currentPassword, newPassword })}
+            disabled={loading || !currentPassword || !newPassword}
+            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+          >
+            {loading ? "Updating..." : "Update"}
+          </button>
+        </div>
       </div>
     </div>
   );

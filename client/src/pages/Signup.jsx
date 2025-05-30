@@ -1,60 +1,61 @@
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
-import { register } from "../services/operations/authOperations";
-import logo from "../assets/images/logo.png";
-import { FcCloseUpMode } from "react-icons/fc";
+import logo from "../assets/logo.png";
+import { useDispatch, useSelector } from "react-redux";
+import { signUp } from "../services/operations/userOperations";
 
 const Signup = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+
+  const { loading, error: reduxError } = useSelector((state) => state.user);
 
   const [formData, setFormData] = useState({
-    firstName:"",
-    lastName:"",
+    fullName: "",
     userName: "",
     password: "",
     confirmPassword: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState("");
 
-  const { userName, password, confirmPassword, firstName, lastName } = formData;
+  const { fullName, userName, password, confirmPassword } = formData;
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const togglePasswordVisibility = (field) => {
-    if (field === "password") {
-      setShowPassword((prev) => !prev);
-    } else if (field === "confirmPassword") {
-      setShowConfirmPassword((prev) => !prev);
-    }
+    setError("");
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (password !== confirmPassword) {
-      alert("Passwords do not match");
+    if (!userName.trim() || !fullName.trim()) {
+      setError("Please fill in all required fields");
       return;
     }
 
-    dispatch(register({ firstName,lastName,userName, password , confirmPassword}, navigate));
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password should be at least 6 characters");
+      return;
+    }
+
+    // Dispatch Redux thunk for signup
+    dispatch(signUp(formData,navigate));
+    console.log(formData)
   };
 
   return (
     <div className="flex flex-col justify-between min-h-screen p-10 bg-blue-100 text-lg">
-      {/* Header */}
       <Link to="/" className="flex items-center gap-2.5 mb-10" aria-label="Go to Home">
         <img src={logo} alt="Mind Space Plus logo" className="h-10" />
         <span className="font-bold text-xl">Mind Space +</span>
       </Link>
 
-      {/* Signup Form */}
       <form
         className="flex flex-col items-center justify-center gap-6 max-w-md mx-auto w-full bg-white p-8 rounded-lg shadow-md"
         onSubmit={handleSubmit}
@@ -74,102 +75,70 @@ const Signup = () => {
             autoComplete="username"
             aria-label="Username"
             placeholder="Choose a username"
+            autoFocus
           />
         </label>
 
-        
         <label className="flex flex-col w-full text-left">
-          <span className="mb-1 font-medium">Last Name</span>
+          <span className="mb-1 font-medium">Full Name</span>
           <input
             type="text"
-            name="lastName"
-            value={lastName}
+            name="fullName"
+            value={fullName}
             onChange={handleChange}
             required
             className="border-2 p-3 rounded focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
-            autoComplete="lastName"
-            aria-label="Lastname"
-            placeholder="Choose a Lastname"
+            autoComplete="name"
+            aria-label="Full Name"
+            placeholder="Enter your full name"
           />
         </label>
 
-        
         <label className="flex flex-col w-full text-left">
-          <span className="mb-1 font-medium">First Name</span>
-          <input
-            type="text"
-            name="firstName"
-            value={firstName}
-            onChange={handleChange}
-            required
-            className="border-2 p-3 rounded focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
-            autoComplete="firstName"
-            aria-label="Firstname"
-            placeholder="Choose a Firstname"
-          />
-        </label>
-
-        <label className="flex flex-col w-full text-left relative">
           <span className="mb-1 font-medium">Password</span>
           <input
-            type={showPassword ? "text" : "password"}
+            type="password"
             name="password"
             value={password}
             onChange={handleChange}
             required
-            className="border-2 p-3 rounded focus:outline-none focus:ring-2 focus:ring-amber-400 transition pr-12"
+            className="border-2 p-3 rounded focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
             autoComplete="new-password"
             aria-label="Password"
             placeholder="Enter your password"
           />
-          <button
-            type="button"
-            onClick={() => togglePasswordVisibility("password")}
-            className="absolute right-3 top-8 text-amber-600 hover:text-amber-800 focus:outline-none"
-            aria-label={showPassword ? "Hide password" : "Show password"}
-          >
-            {showPassword ? "🙈" : "👁️"}
-          </button>
         </label>
 
-        <label className="flex flex-col w-full text-left relative">
+        <label className="flex flex-col w-full text-left">
           <span className="mb-1 font-medium">Confirm Password</span>
           <input
-            type={showConfirmPassword ? "text" : "password"}
+            type="password"
             name="confirmPassword"
             value={confirmPassword}
             onChange={handleChange}
             required
-            className="border-2 p-3 rounded focus:outline-none focus:ring-2 focus:ring-amber-400 transition pr-12"
+            className="border-2 p-3 rounded focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
             autoComplete="new-password"
             aria-label="Confirm Password"
             placeholder="Confirm your password"
           />
-          <button
-            type="button"
-            onClick={() => togglePasswordVisibility("confirmPassword")}
-            className="absolute right-3 top-8 text-amber-600 hover:text-amber-800 focus:outline-none"
-            aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
-          >
-            {showConfirmPassword ? "🙈" : "👁️"}
-          </button>
         </label>
 
-        {/* Error message */}
-        {error && (
+        {(error || reduxError) && (
           <div
             role="alert"
             className="text-red-600 font-semibold bg-red-100 p-2 rounded w-full text-center"
           >
-            {error}
+            {error || reduxError}
           </div>
         )}
 
         <button
           type="submit"
-          className="bg-amber-200 hover:bg-amber-300 px-6 py-3 rounded font-semibold transition disabled:opacity-50 w-full"
           disabled={loading}
-          aria-busy={loading}
+          className={`${
+            loading ? "bg-amber-400 cursor-not-allowed" : "bg-amber-200 hover:bg-amber-300"
+          } px-6 py-3 rounded font-semibold transition w-full`}
           aria-label="Sign up"
         >
           {loading ? "Signing up..." : "Sign Up"}
@@ -184,10 +153,9 @@ const Signup = () => {
         </Link>
       </form>
 
-      {/* Footer */}
       <footer className="flex justify-end mt-10 text-sm text-gray-600" aria-label="Footer">
         <span className="font-semibold flex gap-2 items-center">
-          Made with <FcCloseUpMode aria-hidden="true" /> by @anuragrajpoott
+          Made with <span role="img" aria-hidden="true">🔍</span> by @anuragrajpoott
         </span>
       </footer>
     </div>

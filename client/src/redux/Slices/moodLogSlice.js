@@ -1,73 +1,60 @@
-import { createSlice } from "@reduxjs/toolkit";
+// src/redux/slices/moodLogSlice.js
+import { createSlice } from '@reduxjs/toolkit'
 
-const initialState = {
-  moodLogs: [],       // List of mood log entries
-  moodStats: null,    // Stats like averages, counts, etc.
-  loading: false,
-  error: null,
-  message: null,
-};
-
-const moodSlice = createSlice({
-  name: "mood",
-  initialState,
+const moodLogSlice = createSlice({
+  name: 'moodLog',
+  initialState: {
+    moodLogs: [],
+    loading: false,
+    error: null,
+    successMessage: null,
+  },
   reducers: {
-    setLoading: (state, action) => {
-      state.loading = action.payload;
+    setMoodLogs(state, action) {
+      state.moodLogs = action.payload
     },
-    setMoodLogs: (state, action) => {
-      state.moodLogs = action.payload;
+    addMoodLog(state, action) {
+      state.moodLogs.push(action.payload)
     },
-    addMoodLog: (state, action) => {
-      state.moodLogs.push(action.payload);
-    },
-    updateMoodLogState: (state, action) => {
-      const updatedLog = action.payload;
-      const index = state.moodLogs.findIndex((log) => log._id === updatedLog._id);
+    setUpdatedMoodLog(state, action) {
+      const updatedLog = action.payload
+      const index = state.moodLogs.findIndex(log => log._id === updatedLog._id)
       if (index !== -1) {
-        state.moodLogs[index] = updatedLog;
+        state.moodLogs[index] = updatedLog
       }
     },
-    deleteMoodLogState: (state, action) => {
-      state.moodLogs = state.moodLogs.filter((log) => log._id !== action.payload);
+    setDeletedMoodLog(state, action) {
+      const logId = action.payload
+      state.moodLogs = state.moodLogs.filter(log => log._id !== logId)
     },
-    setMoodStats: (state, action) => {
-      state.moodStats = action.payload;
+    setLoading(state, action) {
+      state.loading = action.payload
     },
-    setError: (state, action) => {
-      state.error = action.payload;
+    setError(state, action) {
+      state.error = action.payload
     },
-    setMessage: (state, action) => {
-      state.message = action.payload;
+    clearError(state) {
+      state.error = null
     },
-    clearError: (state) => {
-      state.error = null;
+    setSuccessMessage(state, action) {
+      state.successMessage = action.payload
     },
-    clearMessage: (state) => {
-      state.message = null;
-    },
-    resetMoodState: (state) => {
-      state.moodLogs = [];
-      state.moodStats = null;
-      state.loading = false;
-      state.error = null;
-      state.message = null;
+    clearSuccessMessage(state) {
+      state.successMessage = null
     },
   },
-});
+})
 
 export const {
-  setLoading,
   setMoodLogs,
   addMoodLog,
-  updateMoodLogState,
-  deleteMoodLogState,
-  setMoodStats,
+  setUpdatedMoodLog,
+  setDeletedMoodLog,
+  setLoading,
   setError,
-  setMessage,
   clearError,
-  clearMessage,
-  resetMoodState,
-} = moodSlice.actions;
+  setSuccessMessage,
+  clearSuccessMessage,
+} = moodLogSlice.actions
 
-export default moodSlice.reducer;
+export default moodLogSlice.reducer
