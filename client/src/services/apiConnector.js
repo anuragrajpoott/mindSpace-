@@ -6,15 +6,17 @@ const axiosInstance = axios.create({
   withCredentials: true,
 });
 
-export const axiosConnector = (method, url, data = null, headers = null, params = null) => {
+export const axiosConnector = (method, url, data , headers , params ) => {
   return axiosInstance({
-    method,
-    url,
-    data,
-    headers,
-    params,
+        method:`${method}`,
+        url:`${url}`,
+        data: bodyData ? bodyData : null,
+        headers: headers ? headers: null,
+        params: params ? params : null,
   });
 };
+
+
 
 export const endPoints = {
   // User
