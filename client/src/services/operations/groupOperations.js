@@ -1,6 +1,15 @@
 import { toast } from "react-hot-toast";
 import { axiosConnector, endPoints } from "../apiConnector";
-import { addGroup, setDeletedGroup, setUpdatedGroup, setGroups } from "../../redux/Slices/groupSlice";
+import {
+  addGroup,
+  setDeletedGroup,
+  setUpdatedGroup,
+  setGroups,
+  setLoading,
+  setError,
+  clearError,
+  setGroupMessages,
+} from "../../redux/Slices/groupSlice";
 
 async function handleAsyncWithToast(asyncFn, loadingMsg, successMsg, errorMsg) {
   const toastId = toast.loading(loadingMsg);
@@ -17,10 +26,10 @@ async function handleAsyncWithToast(asyncFn, loadingMsg, successMsg, errorMsg) {
   }
 }
 
-export const createGroup = (groupData, navigate) => async (dispatch) => {
+export const createGroup = (newGroup, navigate) => async (dispatch) => {
   try {
     const response = await handleAsyncWithToast(
-      () => axiosConnector("POST", endPoints.CREATE_GROUP, groupData),
+      () => axiosConnector("POST", endPoints.CREATE_GROUP, newGroup),
       "Creating group...",
       "Group created",
       "Group creation failed"
@@ -33,25 +42,34 @@ export const createGroup = (groupData, navigate) => async (dispatch) => {
   } catch {}
 };
 
-export const getAllGroups = () => async (dispatch) => {
+export const getAllGroups = (token) => async (dispatch) => {
+  dispatch(setLoading(true));
+  dispatch(clearError());
   const toastId = toast.loading("Loading groups...");
   try {
-    const response = await axiosConnector("GET", endPoints.GET_GROUPS);
+    const response = await axiosConnector("GET", endPoints.GET_GROUPS,{
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        });
     if (!response?.data?.success) throw new Error(response.data.message);
 
-    dispatch(setGroups(response.data.data))
+    dispatch(setGroups(response.data.data));
   } catch (error) {
-    console.error("GET GROUPS ERROR:", error);
+    dispatch(setError(error.message || "Failed to fetch groups"));
     toast.error("Failed to fetch groups");
   } finally {
+    dispatch(setLoading(false));
     toast.dismiss(toastId);
   }
 };
 
-export const updateGroup = (groupId, updatedData, navigate) => async (dispatch) => {
+export const updateGroup = (token,groupId, updatedData, navigate) => async (dispatch) => {
   try {
     const response = await handleAsyncWithToast(
-      () => axiosConnector("PUT", `${endPoints.UPDATE_GROUP}/${groupId}`, updatedData),
+      () => axiosConnector("PUT", `${endPoints.UPDATE_GROUP}/${groupId}`, updatedData,{
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        }),
       "Updating group...",
       "Group updated",
       "Group update failed"
@@ -64,10 +82,13 @@ export const updateGroup = (groupId, updatedData, navigate) => async (dispatch) 
   } catch {}
 };
 
-export const deleteGroup = (groupId) => async (dispatch) => {
+export const deleteGroup = (token,groupId) => async (dispatch) => {
   try {
     const response = await handleAsyncWithToast(
-      () => axiosConnector("DELETE", `${endPoints.DELETE_GROUP}/${groupId}`),
+      () => axiosConnector("DELETE", `${endPoints.DELETE_GROUP}/${groupId}`,{
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        }),
       "Deleting group...",
       "Group deleted",
       "Delete failed"
@@ -75,6 +96,26 @@ export const deleteGroup = (groupId) => async (dispatch) => {
 
     if (!response?.data?.success) throw new Error(response.data.message);
 
-    dispatch(setDeletedGroup());
+
+    dispatch(setDeletedGroup(groupId));
   } catch {}
 };
+
+export const sendGroupMessages = (newMsg,groupId) => async (dispatch) => {
+  try {
+    const response = await handleAsyncWithToast(
+      () => axiosConnector("POST", endPoints.SEND_GROUP_MESSAGE(groupId), newMsg),
+      "Sending Message...",
+      "Message Sent",
+      "Failed Sending Message"
+    );
+
+    if (!response?.data?.success) throw new Error(response.data.message);
+
+
+
+    dispatch(setGroupMessages(response.data.data));
+  } catch {}
+};
+
+

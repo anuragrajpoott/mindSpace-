@@ -1,91 +1,70 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { FcLike, FcBusinessman } from "react-icons/fc";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
-import { createPost, getAllPosts } from "../services/operations/postOperations";
+import { createPost, getAllPosts, likePost, updatePost } from "../services/operations/postOperations";
 import { setPosts } from "../redux/Slices/postSlice";
 import { useNavigate } from "react-router";
 
 const Feed = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { posts, loading } = useSelector((state) => state.posts);
+
+  const { posts, loading, error } = useSelector((state) => state.posts);
+  const { user,token } = useSelector((state) => state.user);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [previewImage, setPreviewImage] = useState(null);
+  const [previewFile, setpreviewFile] = useState(null);
 
-  const {user} = useSelector((state)=>state.user)
+  const modalRef = useRef(null);
 
-  const mockUser = {
-    _id: "123",
-    userName: "demoUser",
-  };
+  // Trending sidebar state
+  const [trending, setTrending] = useState(["Loading trending topics..."]);
 
-  // Fetch posts on mount
+  
+  // Fetch all posts on mount
   useEffect(() => {
-    dispatch(getAllPosts());
-
+    dispatch(getAllPosts(token));
   }, [dispatch]);
-console.log(posts)
-  // Sidebar trending data state
-  const [trending, setTrending] = useState([
-    "Loading trending topics...",
-  ]);
 
-  // Fetch mental health news without API key
-  // useEffect(() => {
-  //   async function fetchTrending() {
-  //     try {
-  //       const res = await fetch(
-  //         "https://inshortsapi.vercel.app/news?category=health"
-  //       );
-  //       const data = await res.json();
-  //       if (data.success && data.data) {
-  //         // Extract some headlines containing mental health keywords
-  //         const filtered = data.data
-  //           .filter((item) =>
-  //             item.title.toLowerCase().includes("mental")
-  //             || item.title.toLowerCase().includes("health")
-  //             || item.title.toLowerCase().includes("anxiety")
-  //             || item.title.toLowerCase().includes("stress")
-  //             || item.title.toLowerCase().includes("depression")
-  //           )
-  //           .slice(0, 5)
-  //           .map((item) => item.title);
-  //         setTrending(filtered.length ? filtered : ["No trending mental health news found"]);
-  //       } else {
-  //         setTrending(["No trending mental health news found"]);
-  //       }
-  //     } catch (error) {
-  //       setTrending(["Failed to fetch trending news"]);
-  //     }
-  //   }
-  //   fetchTrending();
-  // }, []);
+  // Focus trap for modal accessibility
+  useEffect(() => {
+    if (modalOpen) {
+      modalRef.current?.focus();
+    }
+  }, [modalOpen]);
 
+  // Open post creation modal if not loading or submitting
   const openModal = () => {
     if (!loading && !isSubmitting) setModalOpen(true);
   };
 
   const closeModal = () => {
     setModalOpen(false);
-    setPreviewImage(null);
+    setpreviewFile(null);
   };
 
-  const handleAddPost = async ({ content, image }) => {
+  // Handle creating a new post
+  const handleAddPost = async ({ content, media }) => {
     try {
       setIsSubmitting(true);
-      const newPost = {
+      const postData = {
         _id: Date.now().toString(),
-        user: user,
+        user: {
+          _id: user._id,
+          userName: user.userName,
+        },
         content,
-        media:image,
-        likes: [],
+        media: media || "",
+        likes: 0,
+        comments: [],
         createdAt: new Date().toISOString(),
       };
-      dispatch(setPosts([newPost, ...posts]));
-      dispatch(createPost(newPost, navigate));
+      // console.log(postData)
+      dispatch(setPosts([postData, ...posts])); // optimistic UI
+      await dispatch(createPost(postData, navigate)); // backend call
       toast.success("Post created");
       closeModal();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -96,26 +75,45 @@ console.log(posts)
     }
   };
 
-  const handleLikePost = (postId) => {
-    // dispatch(
-    //   setPosts(
-    //     posts?.map((post) =>
-    //       post._id === postId
-    //         ? {
-    //             ...post,
-    //             likes: post?.likes?.includes(user._id)
-    //               ? post?.likes?.filter((id) => id !== user._id)
-    //               : [...post?.likes, user._id],
-    //           }
-    //         : post
-    //     )
-    //   )
-    // );
+  // Handle like/unlike post
+  const handleLikePost = async (postId) => {
+    // if (!user?._id) {
+    //   toast.error("You must be logged in to like posts.");
+    //   return;
+    // }
+
+    // // Optimistic UI update
+    // const updatedPosts = posts.map((post) => {
+    //   if (post._id === postId) {
+    //     const isLiked = post.likes.includes(user._id);
+    //     return {
+    //       ...post,
+    //       likes: isLiked
+    //         ? post.likes.filter((id) => id !== user._id)
+    //         : [...post.likes, user._id],
+    //     };
+    //   }
+    //   return post;
+    // });
+    // dispatch(updatePost(token,updatedPosts))
+    // dispatch(setPosts(updatedPosts));
+
+    // // Call backend to update like
+    // try {
+    //   await dispatch(likePost(token,postId));
+    // } catch (error) {
+    //   toast.error("Failed to update like");
+    //   // revert UI changes on error
+    //   dispatch(setPosts(posts));
+    // }
   };
 
+  // Sort posts by newest first
   const sortedPosts = [...posts].sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   );
+
+  // console.log(sortedPosts)
 
   return (
     <div className="flex justify-around min-h-screen p-10 bg-blue-50">
@@ -123,9 +121,7 @@ console.log(posts)
       <aside className="h-fit w-[30%] bg-white p-6 rounded-lg shadow">
         <div className="mb-4">
           <p className="text-lg font-bold">📈 Trending Now</p>
-          <p className="text-sm text-gray-500">
-            Curated by Mind Space + Supporters
-          </p>
+          <p className="text-sm text-gray-500">Curated by Mind Space + Supporters</p>
         </div>
         <div className="flex flex-col gap-3 text-sm">
           {trending?.map((item, idx) => (
@@ -144,9 +140,7 @@ console.log(posts)
       <main className="flex flex-col gap-6 w-[60%]">
         <div
           className={`bg-white rounded-lg p-6 shadow flex gap-4 items-center ${
-            loading || isSubmitting
-              ? "pointer-events-none opacity-50"
-              : "cursor-pointer"
+            loading || isSubmitting ? "pointer-events-none opacity-50" : "cursor-pointer"
           }`}
           onClick={openModal}
           role="button"
@@ -162,18 +156,17 @@ console.log(posts)
           </div>
         </div>
 
-        {/* Loading & Empty */}
-        {loading && (
-          <p className="text-center text-gray-500 mt-4">Loading posts...</p>
-        )}
-        {!loading && sortedPosts.length === 0 && (
+        {/* Loading & Error & Empty states */}
+        {loading && <p className="text-center text-gray-500 mt-4">Loading posts...</p>}
+        {error && <p className="text-center text-red-500 mt-4">{error}</p>}
+        {!loading && !error && sortedPosts.length === 0 && (
           <p className="text-center text-gray-500 mt-4">No posts found.</p>
         )}
 
         {/* Posts */}
         <AnimatePresence>
-          {sortedPosts?.map((post) => {
-            // const isLikedByUser = post.likes.includes(mockUser._id);
+          {sortedPosts.map((post) => {
+            // const isLikedByUser = post.likes.includes(user?._id);
             return (
               <motion.article
                 key={post._id}
@@ -199,9 +192,9 @@ console.log(posts)
 
                 <p className="text-gray-800 mb-3 whitespace-pre-wrap">{post.content}</p>
 
-                {post.image && (
+                {post.media && (
                   <img
-                    src={post.image}
+                    src={post.media}
                     alt="Post visual"
                     className="rounded-md mb-3 max-h-64 object-cover"
                   />
@@ -209,11 +202,13 @@ console.log(posts)
 
                 <button
                   onClick={() => handleLikePost(post._id)}
-                  className={`text-sm flex items-center gap-1 select-none ${ "text-gray-500"
-                    // isLikedByUser ? "text-blue-600 font-semibold" : "text-gray-500"
-                  }`}
+                  // className={`text-sm flex items-center gap-1 select-none ${
+                  //   isLikedByUser ? "text-blue-600 font-semibold" : "text-gray-500"
+                  // }`}
+                  // aria-pressed={isLikedByUser}
+                  // aria-label={isLikedByUser ? "Unlike post" : "Like post"}
                 >
-                  <FcLike /> {post?.likes?.length} likes
+                  <FcLike /> {post.likes.length} likes
                 </button>
               </motion.article>
             );
@@ -228,6 +223,8 @@ console.log(posts)
           aria-modal="true"
           role="dialog"
           aria-labelledby="modal-title"
+          tabIndex={-1}
+          ref={modalRef}
         >
           <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 mx-4">
             <h2
@@ -244,7 +241,7 @@ console.log(posts)
                   toast.error("Content is required");
                   return;
                 }
-                handleAddPost({ content, image: previewImage || "" });
+                handleAddPost({ content, media: previewFile || "" });
               }}
               className="flex flex-col gap-5"
             >
@@ -255,6 +252,7 @@ console.log(posts)
                 disabled={isSubmitting}
                 className="resize-none w-full rounded-md border border-gray-300 p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
                 required
+                autoFocus
               />
 
               {/* File Input */}
@@ -263,7 +261,7 @@ console.log(posts)
                   htmlFor="fileInput"
                   className="inline-block cursor-pointer rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 transition select-none"
                 >
-                  {previewImage ? "Change Image" : "Upload Image"}
+                  {previewFile ? "Change media" : "Upload media"}
                 </label>
                 <input
                   id="fileInput"
@@ -272,57 +270,45 @@ console.log(posts)
                   disabled={isSubmitting}
                   className="hidden"
                   onChange={(e) => {
-                    const file = e.target.files[0];
+                    const file = e.target.files?.[0];
                     if (file) {
-                      if (!file.type.startsWith("image/")) {
-                        toast.error("Please upload a valid image file");
-                        return;
-                      }
-                      const reader = new FileReader();
-                      reader.onload = () => setPreviewImage(reader.result);
-                      reader.readAsDataURL(file);
+                      const url = URL.createObjectURL(file);
+                      setpreviewFile(url);
                     }
                   }}
                 />
+                {previewFile && (
+                  <div className="mt-3 relative">
+                    <img
+                      src={previewFile}
+                      alt="Preview"
+                      className="max-h-40 rounded-md object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setpreviewFile(null)}
+                      className="absolute top-1 right-1 rounded-full bg-red-600 text-white p-1 hover:bg-red-700"
+                      aria-label="Remove preview media"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {/* Image Preview */}
-              {previewImage && (
-                <div className="relative">
-                  <img
-                    src={previewImage}
-                    alt="Preview"
-                    className="max-h-48 rounded-md object-contain mx-auto"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setPreviewImage(null)}
-                    aria-label="Remove uploaded image"
-                    className="absolute top-1 right-1 rounded-full bg-red-600 text-white w-7 h-7 flex items-center justify-center hover:bg-red-700 transition"
-                  >
-                    &times;
-                  </button>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-3">
+              <div className="flex justify-end gap-4">
                 <button
                   type="button"
-                  onClick={() => {
-                    setPreviewImage(null);
-                    closeModal();
-                  }}
+                  onClick={closeModal}
                   disabled={isSubmitting}
-                  className="rounded-md border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
+                  className="px-4 py-2 rounded border border-gray-400 hover:bg-gray-100 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`rounded-md px-5 py-2 text-white ${
-                    isSubmitting ? "bg-blue-300" : "bg-blue-600 hover:bg-blue-700"
-                  } transition`}
+                  className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50"
                 >
                   {isSubmitting ? "Posting..." : "Post"}
                 </button>

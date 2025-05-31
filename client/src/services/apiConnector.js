@@ -1,4 +1,3 @@
-// src/api.js
 import axios from "axios";
 
 const axiosInstance = axios.create({
@@ -6,23 +5,22 @@ const axiosInstance = axios.create({
   withCredentials: true,
 });
 
-export const axiosConnector = (method, url, data , headers , params ) => {
+export const axiosConnector = (method, url, data, headers, params) => {
   return axiosInstance({
-        method:`${method}`,
-        url:`${url}`,
-        data: data ? data : null,
-        headers: headers ? headers: null,
-        params: params ? params : null,
+    method,
+    url,
+    data: data || undefined,
+    headers: headers || undefined,
+    params: params || undefined,
   });
 };
-
-
 
 export const endPoints = {
   // User
   REGISTER: "/user/register",
   LOGIN: "/user/login",
   UPDATE_PROFILE: (userId) => `/user/updateProfile/${userId}`,
+  SEARCH: "/search",               // <-- Add search endpoint (could be query param based)
 
   // Resources
   CREATE_RESOURCE: "/resources",
@@ -35,6 +33,9 @@ export const endPoints = {
   UPDATE_POST: (postId) => `/posts/${postId}`,
   DELETE_POST: (postId) => `/posts/${postId}`,
   GET_POSTS: "/posts",
+  
+  LIKE_POST: (postId) => `/posts/${postId}/like`,          // <-- Add like post endpoint
+  COMMENT_POST: (postId) => `/posts/${postId}/comment`,    // <-- Add comment post endpoint
 
   // Groups
   CREATE_GROUP: "/groups",
@@ -48,6 +49,6 @@ export const endPoints = {
   CREATE_MOODLOG: "/moodlog",
   GET_MOODLOG: "/moodlog",
   UPDATE_MOODLOG: "/moodlog",
-  DELETE_MOODLOG: "/",
+  DELETE_MOODLOG: "/moodlog",
 };
 

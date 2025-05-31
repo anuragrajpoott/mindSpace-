@@ -1,22 +1,26 @@
 import express from 'express';
+
 import {
   registerUser,
   loginUser,
   updateProfile,
+  searchAll,          // import your search controller here
 } from '../controller/userController.js';
 
 import {
   createResource,
   updateResource,
   getAllResources,
-  deleteResource
+  deleteResource,
 } from '../controller/resourceController.js';
 
 import {
   createPost,
   updatePost,
   deletePost,
-  getAllPosts
+  getAllPosts,
+  likePost,
+  commentPost,
 } from '../controller/postController.js';
 
 import {
@@ -25,14 +29,14 @@ import {
   updateGroup,
   deleteGroup,
   joinGroup,
-  sendMessageToGroup
+  sendMessageToGroup,
 } from '../controller/groupController.js';
 
 import {
   createMoodLog,
   getMoodLog,
   updateMoodLog,
-  deleteMoodLog
+  deleteMoodLog,
 } from '../controller/moodLogController.js';
 
 import { authenticateUser } from '../middleware/middleware.js';
@@ -40,15 +44,17 @@ import { authenticateUser } from '../middleware/middleware.js';
 const router = express.Router();
 
 // ========== USER ==========
-// Public routes
+// Public
 router.post('/user/register', registerUser);
 router.post('/user/login', loginUser);
 
-// Protected routes
+// Protected
 router.put('/user/updateProfile/:userId', authenticateUser, updateProfile);
 
+// Search route - protected
+router.get('/search', authenticateUser, searchAll);
+
 // ========== RESOURCE ==========
-// Protect all resource routes (assuming only logged in users can CRUD resources)
 router.post('/resources', authenticateUser, createResource);
 router.put('/resources/:resourceId', authenticateUser, updateResource);
 router.get('/resources', authenticateUser, getAllResources);
@@ -59,6 +65,9 @@ router.post('/posts', authenticateUser, createPost);
 router.put('/posts/:postId', authenticateUser, updatePost);
 router.delete('/posts/:postId', authenticateUser, deletePost);
 router.get('/posts', authenticateUser, getAllPosts);
+
+router.post('/posts/:postId/like', authenticateUser, likePost);
+router.post('/posts/:postId/comment', authenticateUser, commentPost);
 
 // ========== GROUP ==========
 router.post('/groups', authenticateUser, createGroup);

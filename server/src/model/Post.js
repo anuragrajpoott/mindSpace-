@@ -1,34 +1,36 @@
 import mongoose from 'mongoose';
 
+const { Schema, model } = mongoose;
 
-const postSchema = new mongoose.Schema(
-  {
-    content: {
-      type: String,
-      trim: true,
-      maxlength: 300,
-      default: "",
-    },
-    media: {
-      type: String, // Cloudinary URL or local path
-      default: "",
-      trim: true,
-    },
-    likes: 
-      {
-        type: Number,
-      },
-    
-    comments: [
-      {
-        type: String,
-        ref: "Comment",
-      },
-    ],
+const postSchema = new Schema({
+  content: {
+    type: String,
+    trim: true,
+    maxlength: 300,
+    default: '',
   },
-   { timestamps: true }
-);
+  media: {
+    type: String,
+    trim: true,
+    default: '',
+  },
+  likes: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
+});
 
-const Post = mongoose.model("Post", postSchema);
+postSchema.index({ content: 'text' });
 
-export default Post
+export default model('Post', postSchema);

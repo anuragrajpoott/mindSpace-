@@ -1,21 +1,32 @@
 import mongoose from 'mongoose';
 
-const moodLogSchema = new mongoose.Schema(
-  {
-    mood: {
-      type: String,
-      enum: ['good', 'sad', 'okay', 'depressed'],
-      required: [true, 'Mood is required'],
-    },
-    note: {
-      type: String,
-      trim: true,
-      maxlength: 500,
-      default: '',
-    },
-  },
-  { timestamps: true }
-);
+const { Schema, model } = mongoose;
 
-const MoodLog = mongoose.model('MoodLog', moodLogSchema);
-export default MoodLog;
+const moodLogSchema = new Schema({
+  mood: {
+    type: String,
+    enum: ['good', 'okay', 'sad', 'depressed'],
+    required: true,
+    lowercase: true,
+    trim: true,
+  },
+  note: {
+    type: String,
+    trim: true,
+    maxlength: 500,
+    default: '',
+  },
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
+});
+
+moodLogSchema.index({ user: 1, createdAt: -1 });
+
+export default model('MoodLog', moodLogSchema);

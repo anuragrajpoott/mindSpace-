@@ -1,44 +1,55 @@
 // src/redux/slices/userSlice.js
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice } from "@reduxjs/toolkit";
+
+const initialState = {
+  user: JSON.parse(localStorage.getItem("user")) || null,
+  token: JSON.parse(localStorage.getItem("token")) || null,
+  loading: false,
+  error: null,
+  isAuthenticated: !!localStorage.getItem("token"),
+  searchResults : []
+};
 
 const userSlice = createSlice({
-  name: 'user',
-  initialState: {
-    user: null,
-    token: localStorage.getItem("token", JSON.stringify("token")) || null,
-    loading: false,
-    error: null,
-    isAuthenticated: false,
-  },
+  name: "user",
+  initialState,
   reducers: {
+    setSearchResults(state, action) {
+      state.searchResults = action.payload
+    },
     setToken(state, action) {
-      state.token = action.payload
-      state.error = null
+      state.token = action.payload;
+      state.isAuthenticated = true;
+      localStorage.setItem("token", action.payload);
     },
     setUser(state, action) {
-      state.user = action.payload
-      state.error = null
+      state.user = action.payload;
     },
     clearUser(state) {
-      state.user = null
-      state.error = null
+      state.user = null;
+      state.token = null;
+      state.isAuthenticated = false;
+      localStorage.removeItem("token");
     },
     setLoading(state, action) {
-      state.loading = action.payload
+      state.loading = action.payload;
     },
     setError(state, action) {
-      state.error = action.payload
+      state.error = action.payload;
     },
     clearError(state) {
-      state.error = null
+      state.error = null;
     },
     setProfile(state, action) {
       if (state.user) {
-        state.user = { ...state.user, ...action.payload }
+        state.user = { ...state.user, ...action.payload };
       }
     },
+    clearSearchResults(state) {
+      state.searchResults = []
+    },
   },
-})
+});
 
 export const {
   setUser,
@@ -48,6 +59,8 @@ export const {
   setError,
   clearError,
   setProfile,
-} = userSlice.actions
+  setSearchResults,
+  clearSearchResults
+} = userSlice.actions;
 
-export default userSlice.reducer
+export default userSlice.reducer;

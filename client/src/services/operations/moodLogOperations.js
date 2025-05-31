@@ -1,6 +1,14 @@
 import { toast } from "react-hot-toast";
 import { axiosConnector, endPoints } from "../apiConnector";
-import { addMoodLog, setDeletedMoodLog, setUpdatedMoodLog } from "../../redux/Slices/moodLogSlice";
+import {
+  addMoodLog,
+  setDeletedMoodLog,
+  setUpdatedMoodLog,
+  setLoading,
+  setError,
+  clearError,
+  setMoodLogs, // optional if you want to keep mood logs in redux
+} from "../../redux/Slices/moodLogSlice";
 
 async function handleAsyncWithToast(asyncFn, loadingMsg, successMsg, errorMsg) {
   const toastId = toast.loading(loadingMsg);
@@ -17,10 +25,13 @@ async function handleAsyncWithToast(asyncFn, loadingMsg, successMsg, errorMsg) {
   }
 }
 
-export const createMoodLog = (formData, navigate) => async (dispatch) => {
+export const createMoodLog = (token,formData, navigate) => async (dispatch) => {
   try {
     const response = await handleAsyncWithToast(
-      () => axiosConnector("POST", endPoints.CREATE_MOODLOG, formData),
+      () => axiosConnector("POST", endPoints.CREATE_MOODLOG, formData,{
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        }),
       "Logging mood...",
       "Mood logged successfully",
       "Failed to log mood"
@@ -33,25 +44,34 @@ export const createMoodLog = (formData, navigate) => async (dispatch) => {
   } catch {}
 };
 
-export const getMoodLog = (setMoodData) => async () => {
+export const getMoodLog = (token) => async (dispatch) => {
+  dispatch(setLoading(true));
+  dispatch(clearError());
   const toastId = toast.loading("Fetching mood data...");
   try {
-    const response = await axiosConnector("GET", endPoints.GET_MOOD_LOG);
+    const response = await axiosConnector("GET", endPoints.GET_MOODLOG, {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        });
     if (!response?.data?.success) throw new Error(response.data.message);
 
-    setMoodData(response.data.data);
+    dispatch(setMoodLogs(response.data.data));
   } catch (error) {
-    console.error("GET MOOD LOG ERROR:", error);
+    dispatch(setError(error.message || "Failed to fetch mood log"));
     toast.error("Failed to fetch mood log");
   } finally {
+    dispatch(setLoading(false));
     toast.dismiss(toastId);
   }
 };
 
-export const updateMoodLog = (updatedMoodData, navigate) => async (dispatch) => {
+export const updateMoodLog = (token,updatedMoodData, navigate) => async (dispatch) => {
   try {
     const response = await handleAsyncWithToast(
-      () => axiosConnector("PUT", endPoints.UPDATE_MOOD_LOG, updatedMoodData),
+      () => axiosConnector("PUT", endPoints.UPDATE_MOODLOG, updatedMoodData, {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        }),
       "Updating mood...",
       "Mood updated",
       "Mood update failed"
@@ -64,10 +84,13 @@ export const updateMoodLog = (updatedMoodData, navigate) => async (dispatch) => 
   } catch {}
 };
 
-export const deleteMoodLog = () => async (dispatch) => {
+export const deleteMoodLog = (token) => async (dispatch) => {
   try {
     const response = await handleAsyncWithToast(
-      () => axiosConnector("DELETE", endPoints.DELETE_MOOD_LOG),
+      () => axiosConnector("DELETE", endPoints.DELETE_MOODLOG,{
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        }),
       "Deleting mood log...",
       "Mood log deleted",
       "Failed to delete mood log"

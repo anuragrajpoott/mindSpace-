@@ -1,6 +1,14 @@
 import { toast } from "react-hot-toast";
 import { axiosConnector, endPoints } from "../apiConnector";
-import { addResource, setDeleteResource, setUpdatedResource, setResources } from "../../redux/Slices/resourceSlice";
+import {
+  addResource,
+  setDeletedResource,
+  setUpdatedResource,
+  setResources,
+  setLoading,
+  setError,
+  clearError,
+} from "../../redux/Slices/resourceSlice";
 
 async function handleAsyncWithToast(asyncFn, loadingMsg, successMsg, errorMsg) {
   const toastId = toast.loading(loadingMsg);
@@ -17,10 +25,13 @@ async function handleAsyncWithToast(asyncFn, loadingMsg, successMsg, errorMsg) {
   }
 }
 
-export const createResource = (resourceData, navigate) => async (dispatch) => {
+export const createResource = (token,resourceData, navigate) => async (dispatch) => {
   try {
     const response = await handleAsyncWithToast(
-      () => axiosConnector("POST", endPoints.CREATE_RESOURCE, resourceData),
+      () => axiosConnector("POST", endPoints.CREATE_RESOURCE, resourceData,{
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        }),
       "Creating resource...",
       "Resource created",
       "Resource creation failed"
@@ -33,10 +44,13 @@ export const createResource = (resourceData, navigate) => async (dispatch) => {
   } catch {}
 };
 
-export const updateResource = (resourceId, updatedData, navigate) => async (dispatch) => {
+export const updateResource = (token,resourceId, updatedData, navigate) => async (dispatch) => {
   try {
     const response = await handleAsyncWithToast(
-      () => axiosConnector("PUT", `${endPoints.UPDATE_RESOURCE}/${resourceId}`, updatedData),
+      () => axiosConnector("PUT", `${endPoints.UPDATE_RESOURCE}/${resourceId}`, updatedData,{
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        }),
       "Updating resource...",
       "Resource updated",
       "Resource update failed"
@@ -49,25 +63,34 @@ export const updateResource = (resourceId, updatedData, navigate) => async (disp
   } catch {}
 };
 
-export const getAllResources = () => async () => {
+export const getAllResources = (token) => async (dispatch) => {
   const toastId = toast.loading("Loading resources...");
+  dispatch(setLoading(true));
+  dispatch(clearError());
   try {
-    const response = await axiosConnector("GET", endPoints.GET_RESOURCES);
+    const response = await axiosConnector("GET", endPoints.GET_RESOURCES,{
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        });
     if (!response?.data?.success) throw new Error(response.data.message);
 
-    setResources(response.data.resources);
+    dispatch(setResources(response.data.resources));
   } catch (error) {
-    console.error("GET RESOURCES ERROR:", error);
+    dispatch(setError(error.message || "Failed to load resources"));
     toast.error("Failed to load resources");
   } finally {
+    dispatch(setLoading(false));
     toast.dismiss(toastId);
   }
 };
 
-export const deleteResource = (resourceId) => async (dispatch) => {
+export const deleteResource = (token,resourceId) => async (dispatch) => {
   try {
     const response = await handleAsyncWithToast(
-      () => axiosConnector("DELETE", `${endPoints.DELETE_RESOURCE}/${resourceId}`),
+      () => axiosConnector("DELETE", `${endPoints.DELETE_RESOURCE}/${resourceId}`,{
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        }),
       "Deleting resource...",
       "Resource deleted",
       "Delete failed"
@@ -75,6 +98,6 @@ export const deleteResource = (resourceId) => async (dispatch) => {
 
     if (!response?.data?.success) throw new Error(response.data.message);
 
-    dispatch(setDeleteResource());
+    dispatch(setDeletedResource(resourceId));
   } catch {}
 };

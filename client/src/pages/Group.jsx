@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setGroups } from "../redux/Slices/groupSlice";
-import { getAllGroups } from "../services/operations/groupOperations";
+import { createGroup, getAllGroups, sendGroupMessages } from "../services/operations/groupOperations";
+import { secondsToMilliseconds } from "framer-motion";
 
 const dummyGroups = [
   {
@@ -27,11 +28,17 @@ const dummyGroups = [
 const Groups = () => {
   const dispatch = useDispatch();
   const { groups } = useSelector((state) => state.groups);
+  const { token } = useSelector((state) => state.user);
   const [loading, setLoading] = useState(true);
 
   const [activeGroupId, setActiveGroupId] = useState(null);
   const [messagesByGroup, setMessagesByGroup] = useState({});
   const [inputMessage, setInputMessage] = useState("");
+
+  // New group form states
+  const [newGroupName, setNewGroupName] = useState("");
+  const [newGroupDescription, setNewGroupDescription] = useState("");
+  const [creatingGroup, setCreatingGroup] = useState(false);
 
   const messagesEndRef = useRef(null);
 
@@ -44,9 +51,8 @@ const Groups = () => {
     const fetchGroups = async () => {
       setLoading(true);
       try {
-        dispatch(getAllGroups());
+        dispatch(getAllGroups(token));
 
-        // If your getAllGroups returns groups, update them
         if (groups) {
           setActiveGroupId(groups[0]?._id || null);
         }
@@ -59,7 +65,6 @@ const Groups = () => {
     fetchGroups();
   }, [dispatch]);
 
-  // Scroll messages to bottom when they change or active group changes
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messagesByGroup, activeGroupId]);
@@ -72,15 +77,46 @@ const Groups = () => {
       from: "Me",
       text: inputMessage.trim(),
       time: new Date(),
+      groupId: activeGroupId
     };
 
     setMessagesByGroup((prev) => ({
       ...prev,
       [activeGroupId]: [...(prev[activeGroupId] || []), newMsg],
     }));
+   
+
+    dispatch(sendGroupMessages(newMsg,activeGroupId))
+    
 
     setInputMessage("");
   };
+
+  // New: Handle Create Group
+  const handleCreateGroup = () => {
+    if (!newGroupName.trim()) return;
+
+    setCreatingGroup(true);
+
+    // Simulate API call and update state
+    const newGroup = {
+      _id: `g_${Date.now()}`, // unique id
+      name: newGroupName.trim(),
+      description: newGroupDescription.trim(),
+      membersCount: 1,
+    };
+
+    // Update Redux store with new group
+    dispatch(setGroups([...(groups || []), newGroup]));
+    dispatch(createGroup(newGroup));
+
+    // Reset form
+    setNewGroupName("");
+    setNewGroupDescription("");
+    setActiveGroupId(newGroup._id);
+    setCreatingGroup(false);
+  };
+
 
   const activeGroup = groups?.find((g) => g._id === activeGroupId);
   const messages = messagesByGroup[activeGroupId] || [];
@@ -100,15 +136,45 @@ const Groups = () => {
           Support Groups
         </h2>
 
+        {/* New Group Creation Form */}
+        <div className="mb-6 p-4 border rounded bg-blue-50">
+          <h3 className="text-lg font-semibold mb-2 text-blue-700">Create New Group</h3>
+          <input
+            type="text"
+            placeholder="Group Name"
+            value={newGroupName}
+            onChange={(e) => setNewGroupName(e.target.value)}
+            className="w-full mb-2 p-2 border rounded"
+            aria-label="Group name"
+          />
+          <textarea
+            placeholder="Group Description (optional)"
+            value={newGroupDescription}
+            onChange={(e) => setNewGroupDescription(e.target.value)}
+            className="w-full mb-2 p-2 border rounded"
+            rows={3}
+            aria-label="Group description"
+          />
+          <button
+            onClick={handleCreateGroup}
+            disabled={creatingGroup || !newGroupName.trim()}
+            className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+            type="button"
+            aria-label="Create group"
+          >
+            {creatingGroup ? "Creating..." : "Create Group"}
+          </button>
+        </div>
+
         {loading ? (
           <p>Loading groups...</p>
         ) : groups?.length === 0 ? (
           <p>No support groups available yet.</p>
         ) : (
           <ul role="list" className="space-y-3">
-            {groups?.map((group) => (
+            {groups?.map((group,index) => (
               <li
-                key={group._id}
+                key={index}
                 role="listitem"
                 tabIndex={0}
                 onClick={() => setActiveGroupId(group._id)}
@@ -121,10 +187,8 @@ const Groups = () => {
                 aria-current={activeGroupId === group._id ? "true" : undefined}
               >
                 <h3 className="text-lg">{group.name}</h3>
-                <p className="text-gray-600">
-                  {group.description || "No description available."}
-                </p>
-                <p className="mt-1 text-sm text-gray-500">{group.membersCount ?? 0} members</p>
+                <p className="text-gray-600">{group?.description || "No description available."}</p>
+                <p className="mt-1 text-sm text-gray-500">{group?.members?.length ?? 0} members</p>
               </li>
             ))}
           </ul>
@@ -148,13 +212,9 @@ const Groups = () => {
           aria-live="polite"
           aria-relevant="additions"
         >
-          {!activeGroup && (
-            <p className="text-gray-500">Please select a group to start messaging.</p>
-          )}
+          {!activeGroup && <p className="text-gray-500">Please select a group to start messaging.</p>}
 
-          {activeGroup && messages.length === 0 && (
-            <p className="text-gray-500">No messages yet.</p>
-          )}
+          {activeGroup && messages.length === 0 && <p className="text-gray-500">No messages yet.</p>}
 
           {messages.map((msg) => (
             <div
@@ -164,10 +224,7 @@ const Groups = () => {
             >
               <div className="max-w-sm px-4 py-2 rounded-lg bg-blue-100 shadow break-words">
                 <p className="text-sm">{msg.text}</p>
-                <p
-                  className="text-xs text-gray-500 text-right select-none"
-                  aria-hidden="true"
-                >
+                <p className="text-xs text-gray-500 text-right select-none" aria-hidden="true">
                   {msg.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>

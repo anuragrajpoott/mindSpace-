@@ -1,35 +1,48 @@
 import mongoose from 'mongoose';
 
-const resourceSchema = new mongoose.Schema(
-  {
-    title: {
-      type: String,
-      required: [true, 'Title is required'],
-      trim: true,
-      maxlength: 100,
-    },
-    description: {
-      type: String,
-      trim: true,
-      maxlength: 1000,
-      default: '',
-    },
-    url: {
-      type: String,
-      required: [true, 'URL is required'],
-      trim: true,
-    },
-    category: {
-      type: String,
-      required: [true, 'Category is required'],
-      enum: ['hotline', 'article', 'video', 'other'],
-      default: 'other',
-      lowercase: true,
-      trim: true,
+const { Schema, model } = mongoose;
+
+const resourceSchema = new Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 100,
+  },
+  description: {
+    type: String,
+    trim: true,
+    maxlength: 1000,
+    default: '',
+  },
+  url: {
+    type: String,
+    required: true,
+    trim: true,
+    validate: {
+      validator: v => /^https?:\/\/.+/.test(v),
+      message: 'Invalid URL format',
     },
   },
-  { timestamps: true }
-);
+  category: {
+    type: String,
+    enum: ['hotline', 'article', 'video', 'other'],
+    default: 'other',
+    lowercase: true,
+    trim: true,
+  },
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
+});
 
-const Resource = mongoose.model('Resource', resourceSchema);
-export default Resource;
+resourceSchema.index({ category: 1 });
+resourceSchema.index({ title: 'text', description: 'text' });
+
+export default model('Resource', resourceSchema);
